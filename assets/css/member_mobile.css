@@ -1,0 +1,966 @@
+/**
+ * CRM Member Mobile Viewport Stylesheet
+ * Berbasis Sistem Desain: Warm Organic Editorial & Tactile Modernism
+ * Dokumen Acuan: C:\xampp\htdocs\CRM\.design\mobile.md
+ *
+ * HANYA aktif untuk role User / Member.
+ * Tidak mengubah tampilan Desktop Admin, Kasir, PIC Keluhan, maupun Login.
+ */
+
+:root {
+  /* Palet Warna Desain (Tabel Warna .design/mobile.md) */
+  --crm-bg-app: #F4F3EC;            /* Warm Alabaster / Soft Cream (App Background) */
+  --crm-bg-canvas: #3D472C;         /* Kanvas luar bingkai HP di desktop (Moss Green) */
+  --crm-card-cream: #FAF9F5;        /* Pure Card Cream (Main Card & Bottom Sheet) */
+  --crm-sand: #EAE9E0;              /* Soft Sand / Stone Grey (Secondary container / filter bar) */
+  --crm-forest: #23331D;            /* Deep Forest Green (Header Status Card & Match card) */
+  --crm-olive: #3A4633;             /* Muted Olive Green (Secondary List Cards) */
+  --crm-sage: #6E7865;              /* Sage Bark (Muted text / Collapsed item) */
+  --crm-green-accent: #6CC24A;      /* Vibrant Leaf Green (Primary CTA, active pill, badges) */
+  --crm-terracotta: #C85A32;        /* Terracotta / Burnt Orange (Highlights, metrics, badges) */
+  --crm-black: #182015;             /* Deep Charcoal / Forest Black (Primary Typography) */
+
+  /* Border-radius Tokens (Bagian 7.2) */
+  --crm-radius-xs: 8px;
+  --crm-radius-sm: 12px;
+  --crm-radius-md: 18px;
+  --crm-radius-lg: 24px;
+  --crm-radius-xl: 32px;
+  --crm-radius-full: 999px;
+
+  /* Elevasi & Bayangan */
+  --crm-shadow-ambient: 0 8px 24px rgba(24, 32, 21, 0.08);
+  --crm-shadow-card: 0 12px 32px rgba(24, 32, 21, 0.07);
+  --crm-shadow-floating: 0 16px 40px rgba(0, 0, 0, 0.28);
+
+  /* Transisi & Spring Physics (Bagian 7.3) */
+  --crm-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --crm-transition-fast: 0.25s var(--crm-ease-spring);
+  --crm-transition-normal: 0.35s var(--crm-ease-spring);
+}
+
+/* =========================================================================
+   KANVAS LUAR & MOBILE VIEWPORT SHELL
+   ========================================================================= */
+body.crm-member-body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--crm-bg-canvas);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--crm-black);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* Kanvas Pembungkus Desktop */
+.crm-member-canvas {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px 40px;
+  box-sizing: border-box;
+}
+
+/* Bingkai Mobile Device (iPhone / Android Form Factor) */
+.crm-member-shell {
+  width: 100%;
+  max-width: 440px;
+  height: 852px;
+  max-height: calc(100vh - 48px);
+  background-color: var(--crm-bg-app);
+  border-radius: 44px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), 0 0 0 10px rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  body.crm-member-body {
+    background-color: var(--crm-bg-app);
+  }
+  .crm-member-canvas {
+    padding: 0;
+  }
+  .crm-member-shell {
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* Header Aplikasi Member */
+.crm-mobile-header {
+  padding: 16px 20px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.crm-mobile-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.crm-mobile-brand__logo {
+  height: 32px;
+  width: auto;
+  border-radius: 8px;
+  display: block;
+}
+
+.crm-mobile-brand__info h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--crm-black);
+  letter-spacing: -0.01em;
+}
+
+.crm-mobile-brand__info p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--crm-sage);
+  font-weight: 500;
+}
+
+.crm-mobile-header__logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--crm-radius-full);
+  background: var(--crm-sand);
+  color: var(--crm-forest);
+  text-decoration: none;
+  transition: all var(--crm-transition-fast);
+}
+
+.crm-mobile-header__logout:hover {
+  background: #E0DFD5;
+  transform: scale(1.05);
+}
+
+.crm-mobile-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crm-mobile-header__notif {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--crm-radius-full);
+  background: var(--crm-sand);
+  color: var(--crm-forest);
+  border: none;
+  cursor: pointer;
+  transition: all var(--crm-transition-fast);
+  padding: 0;
+}
+
+.crm-mobile-header__notif:hover {
+  background: #E0DFD5;
+  transform: scale(1.05);
+}
+
+.crm-mobile-header__notif.has-unread {
+  background: var(--crm-forest);
+  color: #FFFFFF;
+}
+
+.crm-notif-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--crm-radius-full);
+  background: var(--crm-terracotta);
+  color: #FFFFFF;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--crm-bg-app);
+  box-sizing: border-box;
+}
+
+/* Area Konten Scrollable */
+.crm-mobile-content {
+  flex: 1;
+  padding: 0 18px 110px; /* Space untuk bottom navigation dock */
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Flash Stack Notifikasi di Mobile */
+.crm-mobile-flash {
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border-radius: var(--crm-radius-md);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: crmSlideDown 0.3s var(--crm-ease-spring);
+}
+.crm-mobile-flash--success {
+  background: #EBF7E5;
+  color: #23541A;
+  border: 1px solid #C4E8B7;
+}
+.crm-mobile-flash--error {
+  background: #FDF0ED;
+  color: #8C2915;
+  border: 1px solid #F5C6BC;
+}
+
+@keyframes crmSlideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================================
+   KOMPONEN KARTU & SISTEM DESAIN (BAGIAN 5 & 6)
+   ========================================================================= */
+
+/* 1. Header Status Card (Deep Forest Green #23331D) */
+.crm-card-forest {
+  background-color: var(--crm-forest);
+  color: #FFFFFF;
+  border-radius: var(--crm-radius-lg);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--crm-shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.crm-card-forest__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.crm-card-forest__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.crm-card-forest__avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--crm-radius-full);
+  background-color: var(--crm-green-accent);
+  color: var(--crm-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(108, 194, 74, 0.4);
+}
+
+.crm-card-forest__name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.crm-card-forest__role {
+  font-size: 12px;
+  color: #A3B59C;
+  margin: 2px 0 0;
+  font-weight: 500;
+}
+
+.crm-card-forest__badge {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #E6F3E1;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: var(--crm-radius-full);
+  letter-spacing: 0.02em;
+}
+
+.crm-card-forest__bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: #C0CDC0;
+}
+
+.crm-card-forest__stat-highlight {
+  color: var(--crm-green-accent);
+  font-weight: 700;
+}
+
+/* 2. Bento Card (Pure Card Cream #FAF9F5) */
+.crm-card-cream {
+  background-color: var(--crm-card-cream);
+  border-radius: var(--crm-radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(24, 32, 21, 0.06);
+  box-shadow: var(--crm-shadow-card);
+  box-sizing: border-box;
+}
+
+.crm-card-cream__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.crm-card-cream__head > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.crm-card-cream__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--crm-black);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.crm-card-cream__subtitle {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--crm-sage);
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+/* 3. Refill Nasi Card Spesifik (Ready: #23331D / Habis: #FAF9F5) */
+.crm-card-refill {
+  border-radius: var(--crm-radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--crm-shadow-card);
+  transition: all var(--crm-transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.crm-card-refill.is-ready {
+  background-color: var(--crm-forest);
+  color: #FFFFFF;
+  border: 1px solid rgba(108, 194, 74, 0.3);
+}
+
+.crm-card-refill.is-ready .crm-card-refill__icon {
+  background: rgba(108, 194, 74, 0.2);
+  color: var(--crm-green-accent);
+}
+
+.crm-card-refill.is-ready .crm-card-refill__title {
+  color: #FFFFFF;
+}
+
+.crm-card-refill.is-ready .crm-card-refill__badge {
+  background-color: var(--crm-green-accent);
+  color: var(--crm-black);
+}
+
+.crm-card-refill.is-habis {
+  background-color: var(--crm-card-cream);
+  color: var(--crm-black);
+  border: 1px solid rgba(24, 32, 21, 0.08);
+}
+
+.crm-card-refill.is-habis .crm-card-refill__icon {
+  background: var(--crm-sand);
+  color: var(--crm-sage);
+}
+
+.crm-card-refill.is-habis .crm-card-refill__badge {
+  background-color: var(--crm-sand);
+  color: var(--crm-sage);
+}
+
+.crm-card-refill__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.crm-card-refill__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crm-card-refill__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.crm-card-refill__sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.crm-card-refill__badge {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: var(--crm-radius-full);
+  letter-spacing: 0.02em;
+}
+
+/* 4. Filter Bar / Deck Selector (#EAE9E0) */
+.crm-filter-bar {
+  background-color: var(--crm-sand);
+  border-radius: var(--crm-radius-md);
+  padding: 4px;
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  margin-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.crm-filter-pill {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--crm-sage);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 12px;
+  border-radius: var(--crm-radius-full);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: all var(--crm-transition-fast);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.crm-filter-pill.is-active {
+  background: #FFFFFF;
+  color: var(--crm-black);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  font-weight: 700;
+}
+
+.crm-filter-pill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--crm-green-accent);
+}
+
+/* 5. Hierarchical List Cards (Tier 1: #23331D, Tier 2: #3A4633, Tier 3: #FAF9F5) */
+.crm-list-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.crm-item-card {
+  border-radius: var(--crm-radius-md);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: transform var(--crm-transition-fast);
+  text-decoration: none;
+  color: inherit;
+  box-sizing: border-box;
+}
+
+.crm-item-card:active {
+  transform: scale(0.98);
+}
+
+.crm-item-card--tier-forest {
+  background-color: var(--crm-forest);
+  color: #FFFFFF;
+}
+
+.crm-item-card--tier-olive {
+  background-color: var(--crm-olive);
+  color: #FFFFFF;
+}
+
+.crm-item-card--tier-cream {
+  background-color: var(--crm-card-cream);
+  color: var(--crm-black);
+  border: 1px solid rgba(24, 32, 21, 0.06);
+}
+
+.crm-item-card__title {
+  font-size: 14.5px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.crm-item-card__desc {
+  font-size: 12px;
+  margin: 3px 0 0;
+  opacity: 0.8;
+}
+
+/* Tag Pills & Badges */
+.crm-pill-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--crm-radius-sm);
+  background: var(--crm-sand);
+  color: var(--crm-black);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.crm-pill-tag--terracotta {
+  background: rgba(200, 90, 50, 0.14);
+  color: var(--crm-terracotta);
+}
+
+.crm-pill-tag--green {
+  background: rgba(108, 194, 74, 0.16);
+  color: #2F691C;
+}
+
+/* Tag Pills inside dark cards (#23331D) */
+.crm-card-forest .crm-pill-tag {
+  color: #FFFFFF;
+}
+
+.crm-card-forest .crm-pill-tag--green {
+  background: rgba(108, 194, 74, 0.28);
+  color: #FFFFFF;
+  border: 1px solid rgba(108, 194, 74, 0.4);
+}
+
+.crm-card-forest .crm-pill-tag--terracotta {
+  background: rgba(200, 90, 50, 0.28);
+  color: #FFFFFF;
+}
+
+/* Tombol CTA Hijau Daun (#6CC24A) */
+.crm-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 48px;
+  background-color: var(--crm-green-accent);
+  color: var(--crm-black);
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: var(--crm-radius-full);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(108, 194, 74, 0.35);
+  transition: all var(--crm-transition-fast);
+  box-sizing: border-box;
+}
+
+.crm-btn-primary:hover {
+  background-color: #79D156;
+  transform: translateY(-1px);
+}
+
+.crm-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.crm-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 48px;
+  background-color: var(--crm-sand);
+  color: var(--crm-black);
+  font-size: 14.5px;
+  font-weight: 600;
+  border-radius: var(--crm-radius-full);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--crm-transition-fast);
+  box-sizing: border-box;
+}
+
+.crm-btn-secondary:hover {
+  background-color: #E2E1D6;
+}
+
+/* Form Fields */
+.crm-mobile-field {
+  margin-bottom: 16px;
+}
+.crm-mobile-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--crm-black);
+  margin-bottom: 6px;
+}
+.crm-mobile-input {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: #FFFFFF;
+  border: 1px solid #D9D7CB;
+  border-radius: var(--crm-radius-md);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--crm-black);
+  box-sizing: border-box;
+  transition: border-color var(--crm-transition-fast);
+}
+.crm-mobile-input:focus {
+  outline: none;
+  border-color: var(--crm-green-accent);
+  box-shadow: 0 0 0 3px rgba(108, 194, 74, 0.2);
+}
+
+/* =========================================================================
+   FLOATING BOTTOM NAVIGATION DOCK (BAGIAN 4.2)
+   ========================================================================= */
+.crm-bottom-dock {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 36px);
+  max-width: 400px;
+  height: 60px;
+  background-color: #FFFFFF;
+  border-radius: var(--crm-radius-full);
+  padding: 4px;
+  box-shadow: var(--crm-shadow-floating);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 50;
+  box-sizing: border-box;
+}
+
+.crm-dock-item {
+  flex: 1;
+  height: 52px;
+  border-radius: var(--crm-radius-full);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--crm-sage);
+  font-size: 11px;
+  font-weight: 600;
+  transition: all var(--crm-transition-fast);
+  position: relative;
+  gap: 2px;
+}
+
+.crm-dock-item svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+
+.crm-dock-item.is-active {
+  background-color: var(--crm-green-accent);
+  color: var(--crm-black);
+}
+
+.crm-dock-item.is-active svg {
+  stroke: var(--crm-black);
+}
+
+.crm-dock-badge {
+  position: absolute;
+  top: 6px;
+  right: 18%;
+  background: var(--crm-forest);
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 999px;
+  min-width: 14px;
+  text-align: center;
+}
+
+/* =========================================================================
+   MODAL BOTTOM SHEET (BAGIAN 4.3 & HALAMAN 4)
+   ========================================================================= */
+.crm-bottom-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(22, 30, 18, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 99;
+  display: none;
+  opacity: 0;
+  transition: opacity var(--crm-transition-fast);
+}
+
+.crm-bottom-sheet-backdrop.is-open {
+  display: block;
+  opacity: 1;
+}
+
+.crm-bottom-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-height: 86%;
+  background-color: var(--crm-card-cream);
+  border-radius: 32px 32px 0 0;
+  z-index: 100;
+  overflow-y: auto;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(100%);
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 0.35s var(--crm-ease-spring), visibility 0.35s step-end;
+  padding: 14px 18px 32px;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+}
+
+.crm-bottom-sheet.is-open {
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+  transition: transform 0.35s var(--crm-ease-spring), visibility 0s;
+}
+
+.crm-bottom-sheet__handle {
+  width: 44px;
+  height: 5px;
+  background-color: #D3D2C6;
+  border-radius: 999px;
+  margin: 0 auto 14px;
+}
+
+.crm-bottom-sheet__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.crm-bottom-sheet__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--crm-black);
+  line-height: 1.25;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crm-bottom-sheet__sub {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--crm-sage);
+}
+
+.crm-bottom-sheet__close {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--crm-radius-full);
+  background: var(--crm-sand);
+  color: var(--crm-black);
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--crm-transition-fast);
+}
+
+.crm-bottom-sheet__close:hover {
+  background: #DFDED3;
+}
+
+/* Komponen Notifikasi Promo Member */
+.crm-notif-voucher-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--crm-radius-md);
+  margin-top: 10px;
+  background: var(--crm-sand);
+  border: 1px solid rgba(24, 32, 21, 0.08);
+}
+
+.crm-card-forest .crm-notif-voucher-box {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(108, 194, 74, 0.35);
+}
+
+.crm-notif-voucher-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: var(--crm-green-accent);
+  color: var(--crm-black);
+  padding: 4px 10px;
+  border-radius: var(--crm-radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.crm-notif-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(24, 32, 21, 0.08);
+}
+
+.crm-card-forest .crm-notif-card__actions {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+.crm-btn-mini {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border-radius: var(--crm-radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all var(--crm-transition-fast);
+  white-space: nowrap;
+}
+
+.crm-btn-mini--green {
+  background: var(--crm-green-accent);
+  color: var(--crm-black);
+}
+
+.crm-btn-mini--green:hover {
+  background: #79D156;
+}
+
+.crm-btn-mini--sand {
+  background: var(--crm-sand);
+  color: var(--crm-black);
+}
+
+.crm-btn-mini--sand:hover {
+  background: #E0DFD4;
+}
+
+.crm-btn-mini--ghost-dark {
+  background: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.crm-btn-mini--ghost-dark:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.crm-voucher-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.crm-voucher-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: var(--crm-radius-full);
+  border: 1px solid #D5D3C8;
+  background: #FFFFFF;
+  color: var(--crm-forest);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--crm-transition-fast);
+}
+
+.crm-voucher-chip.is-selected {
+  background: var(--crm-green-accent);
+  border-color: var(--crm-green-accent);
+  color: var(--crm-black);
+}
