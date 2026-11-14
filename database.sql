@@ -220,7 +220,17 @@ INSERT INTO member (email, password, no_telp, tgl_join, name, total_poin, member
 ('hendra.wijaya@mail.com',    '123456', '081345678907', '2026-10-03', 'Hendra Wijaya',           15, 'aktif'),
 ('nadia.rahma@mail.com',      '123456', '081345678908', '2026-10-12', 'Nadia Rahma',             60, 'aktif'),
 ('yoga.saputra@mail.com',     '123456', '081345678909', '2026-10-21', 'Yoga Saputra',             0, 'aktif'),
-('melati.ayu@mail.com',       '123456', '081345678910', '2026-10-30', 'Melati Ayu Lestari',      45, 'aktif');
+('melati.ayu@mail.com',       '123456', '081345678910', '2026-10-30', 'Melati Ayu Lestari',      45, 'aktif'),
+('rizky.fauzi@mail.com',      '123456', '081298765431', '2026-09-15', 'Rizky Fauzi',              0, 'aktif'),
+('anisa.rahmawati@mail.com',  '123456', '085712345671', '2026-09-18', 'Anisa Rahmawati',          0, 'aktif'),
+('dimas.pratama@mail.com',    '123456', '082134567891', '2026-09-22', 'Dimas Pratama',            0, 'aktif'),
+('tiara.andini@mail.com',     '123456', '081387654321', '2026-09-28', 'Tiara Andini',             0, 'aktif'),
+('bagas.kurniawan@mail.com',  '123456', '085876543210', '2026-10-01', 'Bagas Kurniawan',          0, 'aktif'),
+('citra.dewi@mail.com',       '123456', '082211223344', '2026-10-05', 'Citra Dewi Anggraini',     0, 'aktif'),
+('farhan.maulana@mail.com',   '123456', '081233445566', '2026-10-08', 'Farhan Maulana',           0, 'aktif'),
+('gita.savitri@mail.com',     '123456', '085699887766', '2026-10-11', 'Gita Savitri',             0, 'aktif'),
+('ilham.hidayat@mail.com',    '123456', '081377889900', '2026-10-13', 'Ilham Hidayat',            0, 'aktif'),
+('jessica.putri@mail.com',    '123456', '082155667788', '2026-10-14', 'Jessica Putri',            0, 'aktif');
 
 INSERT INTO pengaturan (setting_key, setting_val) VALUES
 ('refill_nasi', 'ready')
