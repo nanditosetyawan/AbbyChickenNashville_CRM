@@ -75,6 +75,7 @@ function menu_per_role($role)
         'promo'         => ['label' => 'Promo & Notifikasi', 'url' => 'pages/promo/index.php',      'icon' => 'bell',      'roles' => ['Admin']],
         'control_promo' => ['label' => 'Control Promosi',    'url' => 'pages/promo/control.php',    'icon' => 'send',      'roles' => ['Admin']],
         'pegawai'       => ['label' => 'Pegawai',            'url' => 'pages/pegawai/index.php',    'icon' => 'pegawai',   'roles' => ['Admin']],
+        'aturan'        => ['label' => 'Aturan & SOP',        'url' => 'pages/aturan/index.php',     'icon' => 'book',      'roles' => ['Admin', 'Kasir', 'PIC Keluhan', 'Pimpinan']],
     ];
 
     return array_filter($semua, static function ($item) use ($role) {

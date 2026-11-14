@@ -198,6 +198,7 @@ function icon($nama, $ukuran = 18)
         'rice'       => '<path d="M3 11c0 4.97 4.03 9 9 9s9-4.03 9-9H3z"/><path d="M7 20h10"/><path d="M8 8c0-1.5 1-2 1-3"/><path d="M12 8c0-1.5 1-2 1-3"/><path d="M16 8c0-1.5 1-2 1-3"/>',
         'send'       => '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>',
         'copy'       => '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+        'book'       => '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/><path d="M9 7h6"/><path d="M9 11h4"/>',
     ];
     $isi = $path[$nama] ?? $path['dashboard'];
     return '<svg class="icon" width="' . (int) $ukuran . '" height="' . (int) $ukuran . '" viewBox="0 0 24 24" fill="none" '
@@ -403,4 +404,20 @@ function tampil_telepon($telepon, $role = null)
     }
 
     return sensor_telepon($tel, 5);
+}
+
+/**
+ * Format nomor telepon Indonesia ke format WhatsApp (awalan 62).
+ * Contoh: "081345678903" -> "6281345678903"
+ */
+function format_wa($no_telp)
+{
+    $tel = preg_replace('/\D/', '', trim((string) $no_telp));
+    if ($tel === '') {
+        return '';
+    }
+    if (substr($tel, 0, 1) === '0') {
+        $tel = '62' . substr($tel, 1);
+    }
+    return $tel;
 }

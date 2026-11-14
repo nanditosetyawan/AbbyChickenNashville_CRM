@@ -114,6 +114,8 @@ $flash = ambil_flash();
       <?php foreach (menu_per_role($role_pegawai) as $key => $item): ?>
         <?php if ($key === 'pegawai'): ?>
           <p class="sidebar__label sidebar__label--spaced">Administrasi</p>
+        <?php elseif ($key === 'aturan' && $role_pegawai !== 'Admin'): ?>
+          <p class="sidebar__label sidebar__label--spaced">SOP & Panduan</p>
         <?php endif; ?>
         <a class="nav-item<?= $active_menu === $key ? ' is-active' : '' ?>"
            href="<?= e(base_url($item['url'])) ?>"

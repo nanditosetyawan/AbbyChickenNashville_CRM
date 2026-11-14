@@ -147,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $target_members = [];
         if ($form_data['target_type'] === 'all') {
-            $q_all = mysqli_query($conn, "SELECT d.member_id, d.name FROM ({$dormant_subquery}) AS d WHERE d.hari_tidak_pesan >= 30");
+            $q_all = mysqli_query($conn, "SELECT d.member_id, d.name, d.no_telp FROM ({$dormant_subquery}) AS d WHERE d.hari_tidak_pesan >= 30");
             if ($q_all) {
                 while ($tm = mysqli_fetch_assoc($q_all)) {
                     $target_members[] = $tm;
@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $form_data['member_nama'] = 'Semua Member Tidak Pesan >= 30 Hari (' . count($target_members) . ' member)';
         } else {
-            $stmt_m = mysqli_prepare($conn, 'SELECT member_id, name FROM member WHERE member_id = ? LIMIT 1');
+            $stmt_m = mysqli_prepare($conn, 'SELECT member_id, name, no_telp FROM member WHERE member_id = ? LIMIT 1');
             mysqli_stmt_bind_param($stmt_m, 'i', $form_data['member_id']);
             mysqli_stmt_execute($stmt_m);
             $tm = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_m));
@@ -200,6 +200,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     set_flash('success', 'Notifikasi promosi berhasil dikirim ke ' . count($target_members) . ' member' . $info_voucher . '.');
                 }
+
+                // Siapkan data auto-open WhatsApp & animasi pesawat terbang untuk member tunggal
+                if (count($target_members) === 1) {
+                    $tm_target = $target_members[0];
+                    $raw_telp  = trim((string) ($tm_target['no_telp'] ?? ''));
+                    if ($raw_telp === '') {
+                        $raw_telp = trim((string) ($_POST['member_telp'] ?? ''));
+                    }
+                    $wa_number = format_wa($raw_telp);
+                    if ($wa_number !== '') {
+                        $wa_text = "Halo {$tm_target['name']}! 👋\n\n";
+                        if ($form_data['judul'] !== '') {
+                            $wa_text .= "*{$form_data['judul']}*\n";
+                        }
+                        $wa_text .= "{$form_data['pesan']}\n\n";
+                        if (!empty($kode_voucher_param)) {
+                            $wa_text .= "🎁 Gunakan kode voucher: *{$kode_voucher_param}* untuk mendapatkan potongan promo spesial!\n\n";
+                        }
+                        $wa_text .= "Pesan sekarang di AbbyChicken Nashville! 🍗";
+
+                        $_SESSION['wa_launch'] = [
+                            'url'         => 'https://wa.me/' . $wa_number . '?text=' . rawurlencode($wa_text),
+                            'nama'        => $tm_target['name'],
+                            'telp_sensor' => sensor_telepon($raw_telp, 5),
+                            'voucher'     => $kode_voucher_param ?: '-',
+                        ];
+                    }
+                }
+
                 redirect(base_url('pages/promo/control.php'));
             } catch (Throwable $ex) {
                 mysqli_rollback($conn);
@@ -316,11 +345,81 @@ if ($tab === 'member' && count($dormant_members) > 0) {
         data-target-type="all"
         data-member-id="0"
         data-member-nama="Semua Member Tidak Pesan ≥ 30 Hari (' . count($dormant_members) . ' member)"
-        data-lama-tidak-pesan="≥ 30 hari tidak memesan">'
+        data-lama-tidak-pesan="≥ 30 hari tidak memesan"
+        data-member-telp="">'
         . icon('send', 16) . ' Kirim ke semua (' . count($dormant_members) . ')</button>';
 }
 
 require_once __DIR__ . '/../../includes/header.php';
+
+$wa_launch = $_SESSION['wa_launch'] ?? null;
+unset($_SESSION['wa_launch']);
+?>
+
+<?php if (!empty($wa_launch)): ?>
+<div class="wa-flight-overlay is-active" id="waFlightOverlay" role="dialog" aria-modal="true" aria-labelledby="waFlightTitle">
+  <div class="wa-flight-stage">
+    <svg class="wa-flight-trail" viewBox="0 0 240 90" fill="none">
+      <path d="M10 75 Q 80 65, 140 40 T 230 15" stroke="rgba(255,255,255,0.45)" stroke-width="2.5" stroke-dasharray="6 6" stroke-linecap="round"/>
+    </svg>
+    <div class="wa-airplane-glider">
+      <svg viewBox="0 0 100 100" width="76" height="76" style="overflow:visible;">
+        <defs>
+          <linearGradient id="waPlaneBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFFFFF"/>
+            <stop offset="100%" stop-color="#E2E8F0"/>
+          </linearGradient>
+          <linearGradient id="waPlaneWing" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FF6B35"/>
+            <stop offset="100%" stop-color="#E55A2B"/>
+          </linearGradient>
+          <linearGradient id="waPlaneShade" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#CBD5E1"/>
+            <stop offset="100%" stop-color="#94A3B8"/>
+          </linearGradient>
+        </defs>
+        <polygon points="92,8 12,56 46,66" fill="url(#waPlaneBody)"/>
+        <polygon points="92,8 46,66 54,86 64,68" fill="url(#waPlaneShade)"/>
+        <polygon points="92,8 64,68 88,44" fill="url(#waPlaneWing)"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="wa-flight-card">
+    <div class="wa-flight-card__title" id="waFlightTitle">
+      <?= icon('send', 20) ?> Promosi Terkirim!
+    </div>
+    <p class="wa-flight-card__sub">
+      Notifikasi promosi berhasil disimpan di sistem. Menghubungkan ke kontak WhatsApp member…
+    </p>
+
+    <div class="wa-flight-card__pill">
+      <?= icon('member', 14) ?> <?= e($wa_launch['nama']) ?> &middot; <?= e($wa_launch['telp_sensor']) ?>
+      <?php if ($wa_launch['voucher'] !== '-'): ?>
+        &middot; <strong><?= e($wa_launch['voucher']) ?></strong>
+      <?php endif; ?>
+    </div>
+
+    <div class="wa-flight-progress-bar">
+      <div class="wa-flight-progress-fill" id="waProgressFill"></div>
+    </div>
+
+    <div class="wa-flight-card__timer" id="waFlightTimer">
+      <?= icon('clock', 14) ?> Membuka WhatsApp dalam <strong id="waCountdownSec">2</strong> detik…
+    </div>
+
+    <div class="wa-flight-card__actions">
+      <a class="btn btn--whatsapp" id="btnWaDirect" href="<?= e($wa_launch['url']) ?>" target="_blank" rel="noopener noreferrer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.414-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.888 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.652c1.746.951 3.71 1.452 5.71 1.453h.005c6.554 0 11.89-5.335 11.893-11.893a11.82 11.82 0 00-3.48-8.413z"/>
+        </svg>
+        Buka WhatsApp Sekarang
+      </a>
+      <button class="btn btn--secondary" type="button" id="btnWaClose">Tutup</button>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
 ?>
 
 <section class="kpi-grid">
@@ -476,7 +575,8 @@ require_once __DIR__ . '/../../includes/header.php';
                           data-target-type="single"
                           data-member-id="<?= (int) $m['member_id'] ?>"
                           data-member-nama="<?= e($m['name']) ?>"
-                          data-lama-tidak-pesan="<?= e($ket_lama) ?>">
+                          data-lama-tidak-pesan="<?= e($ket_lama) ?>"
+                          data-member-telp="<?= e($m['no_telp']) ?>">
                     <?= icon('send', 14) ?> Kirim Promosi
                   </button>
                 </td>
@@ -681,6 +781,8 @@ require_once __DIR__ . '/../../includes/header.php';
       <button class="btn btn--secondary" type="button" data-modal-close>Batal</button>
       <button class="btn btn--primary" type="submit"><?= icon('send', 15) ?> Kirim Promosi</button>
     </div>
+
+    <input type="hidden" name="member_telp" value="" data-input="memberTelp">
   </form>
 </dialog>
 
@@ -750,6 +852,83 @@ document.addEventListener('DOMContentLoaded', function () {
     updateVoucherStatus();
   }
   <?php endif; ?>
+
+  // --- Penanganan Animasi Pesawat Kertas & WhatsApp Auto-Open ---
+  <?php if (!empty($wa_launch)): ?>
+  (function () {
+    var overlay = document.getElementById('waFlightOverlay');
+    var progress = document.getElementById('waProgressFill');
+    var countdownSec = document.getElementById('waCountdownSec');
+    var btnClose = document.getElementById('btnWaClose');
+    var timerBox = document.getElementById('waFlightTimer');
+    var waUrl = <?= json_encode($wa_launch['url'], JSON_UNESCAPED_SLASHES) ?>;
+
+    if (progress) {
+      setTimeout(function () {
+        progress.style.width = '100%';
+      }, 80);
+    }
+
+    var timeLeft = 2;
+    var timerInterval = setInterval(function () {
+      timeLeft--;
+      if (countdownSec && timeLeft >= 0) {
+        countdownSec.textContent = timeLeft;
+      }
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+      }
+    }, 1000);
+
+    var waTimer = setTimeout(function () {
+      if (waUrl) {
+        try {
+          var win = window.open(waUrl, '_blank');
+          if (!win || win.closed || typeof win.closed === 'undefined') {
+            if (timerBox) {
+              timerBox.innerHTML = '<span style="color:#FF6B35;font-weight:600;">Klik tombol hijau di bawah untuk membuka WhatsApp.</span>';
+            }
+            return;
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+      if (timerBox) {
+        timerBox.innerHTML = '<span style="color:#25D366;font-weight:600;">✓ WhatsApp telah dibuka di tab baru!</span>';
+      }
+      setTimeout(function () {
+        if (overlay) {
+          overlay.style.opacity = '0';
+          setTimeout(function () { overlay.remove(); }, 400);
+        }
+      }, 2500);
+    }, 2400);
+
+    if (btnClose) {
+      btnClose.addEventListener('click', function () {
+        clearTimeout(waTimer);
+        clearInterval(timerInterval);
+        if (overlay) {
+          overlay.style.opacity = '0';
+          setTimeout(function () { overlay.remove(); }, 350);
+        }
+      });
+    }
+  })();
+  <?php endif; ?>
+
+  // Feedback tombol saat form dikirim
+  var formPromo = document.getElementById('formKirimPromo');
+  if (formPromo) {
+    formPromo.addEventListener('submit', function () {
+      var btnSubmit = formPromo.querySelector('button[type="submit"]');
+      if (btnSubmit) {
+        btnSubmit.innerHTML = '✈️ Mengirim Promosi…';
+        btnSubmit.style.opacity = '0.85';
+      }
+    });
+  }
 });
 </script>
 
