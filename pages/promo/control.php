@@ -359,28 +359,42 @@ unset($_SESSION['wa_launch']);
 <?php if (!empty($wa_launch)): ?>
 <div class="wa-flight-overlay is-active" id="waFlightOverlay" role="dialog" aria-modal="true" aria-labelledby="waFlightTitle">
   <div class="wa-flight-stage">
-    <svg class="wa-flight-trail" viewBox="0 0 240 90" fill="none">
-      <path d="M10 75 Q 80 65, 140 40 T 230 15" stroke="rgba(255,255,255,0.45)" stroke-width="2.5" stroke-dasharray="6 6" stroke-linecap="round"/>
+    <div class="wind-particles">
+      <div class="wind-line" style="top:40px; left:280px; width:70px; animation-delay:0.2s;"></div>
+      <div class="wind-line" style="top:100px; left:170px; width:110px; animation-delay:0.5s;"></div>
+      <div class="wind-line" style="top:160px; left:80px; width:90px; animation-delay:0.8s;"></div>
+    </div>
+    <svg class="flight-svg-track" viewBox="0 0 520 280">
+      <defs>
+        <linearGradient id="trailGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#FF6B35" stop-opacity="0.85"/>
+          <stop offset="50%" stop-color="#4ECDC4" stop-opacity="0.75"/>
+          <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.3"/>
+        </linearGradient>
+      </defs>
+      <path class="flight-trail-line" d="M -30,220 C 70,230 140,160 220,130 S 370,120 420,70 C 470,25 510,-10 560,-50"/>
     </svg>
     <div class="wa-airplane-glider">
-      <svg viewBox="0 0 100 100" width="76" height="76" style="overflow:visible;">
+      <svg class="plane-body-svg" viewBox="0 0 76 46">
         <defs>
-          <linearGradient id="waPlaneBody" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id="topWing" x1="0%" y1="0%" x2="100%" y2="50%">
             <stop offset="0%" stop-color="#FFFFFF"/>
             <stop offset="100%" stop-color="#E2E8F0"/>
           </linearGradient>
-          <linearGradient id="waPlaneWing" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#FF6B35"/>
+          <linearGradient id="bottomWing" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FF7A45"/>
             <stop offset="100%" stop-color="#E55A2B"/>
           </linearGradient>
-          <linearGradient id="waPlaneShade" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id="foldShade" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stop-color="#CBD5E1"/>
             <stop offset="100%" stop-color="#94A3B8"/>
           </linearGradient>
         </defs>
-        <polygon points="92,8 12,56 46,66" fill="url(#waPlaneBody)"/>
-        <polygon points="92,8 46,66 54,86 64,68" fill="url(#waPlaneShade)"/>
-        <polygon points="92,8 64,68 88,44" fill="url(#waPlaneWing)"/>
+        <!-- Origami Paper Plane (Forward facing right along motion path) -->
+        <polygon points="72,23 8,40 22,23" fill="url(#bottomWing)"/>
+        <polygon points="72,23 22,23 26,29 14,35" fill="url(#foldShade)"/>
+        <polygon points="72,23 8,6 22,23" fill="url(#topWing)"/>
+        <line x1="22" y1="23" x2="72" y2="23" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
       </svg>
     </div>
   </div>
