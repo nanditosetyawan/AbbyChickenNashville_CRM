@@ -360,43 +360,73 @@ unset($_SESSION['wa_launch']);
 <div class="wa-flight-overlay is-active" id="waFlightOverlay" role="dialog" aria-modal="true" aria-labelledby="waFlightTitle">
   <div class="wa-flight-stage">
     <div class="wind-particles">
-      <div class="wind-line" style="top:40px; left:280px; width:70px; animation-delay:0.2s;"></div>
-      <div class="wind-line" style="top:100px; left:170px; width:110px; animation-delay:0.5s;"></div>
-      <div class="wind-line" style="top:160px; left:80px; width:90px; animation-delay:0.8s;"></div>
+      <div class="wind-line" style="top:35px; left:260px; width:80px; animation-delay:0.4s;"></div>
+      <div class="wind-line" style="top:95px; left:160px; width:120px; animation-delay:0.9s;"></div>
+      <div class="wind-line" style="top:150px; left:80px; width:100px; animation-delay:1.5s;"></div>
     </div>
-    <svg class="flight-svg-track" viewBox="0 0 520 280">
+
+    <svg class="flight-svg-track" viewBox="0 0 540 240">
       <defs>
         <linearGradient id="trailGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#FF6B35" stop-opacity="0.85"/>
-          <stop offset="50%" stop-color="#4ECDC4" stop-opacity="0.75"/>
-          <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.3"/>
+          <stop offset="0%" stop-color="#FF6B35" stop-opacity="0.95"/>
+          <stop offset="50%" stop-color="#4ECDC4" stop-opacity="0.85"/>
+          <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.5"/>
         </linearGradient>
+
+        <linearGradient id="topWing" x1="0%" y1="0%" x2="100%" y2="50%">
+          <stop offset="0%" stop-color="#FFFFFF"/>
+          <stop offset="100%" stop-color="#E2E8F0"/>
+        </linearGradient>
+        <linearGradient id="bottomWing" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#FF7A45"/>
+          <stop offset="100%" stop-color="#E55A2B"/>
+        </linearGradient>
+        <linearGradient id="foldShade" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#CBD5E1"/>
+          <stop offset="100%" stop-color="#94A3B8"/>
+        </linearGradient>
+
+        <!-- Master flight path -->
+        <path id="flightMotionPath" d="M -20,200 C 80,210 150,150 230,120 S 380,110 430,60 C 480,20 520,-10 570,-45"/>
+
+        <!-- Mask to reveal dashed trail strictly behind the plane, synchronized via SVG animate -->
+        <mask id="trailMask">
+          <path d="M -20,200 C 80,210 150,150 230,120 S 380,110 430,60 C 480,20 520,-10 570,-45"
+                pathLength="100"
+                fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"
+                stroke-dasharray="100 100" stroke-dashoffset="100">
+            <animate attributeName="stroke-dashoffset" from="100" to="0" dur="4.2s" fill="freeze"
+                     calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+          </path>
+        </mask>
       </defs>
-      <path class="flight-trail-line" d="M -30,220 C 70,230 140,160 220,130 S 370,120 420,70 C 470,25 510,-10 560,-50"/>
+
+      <!-- Drawn trail line strictly behind plane via mask wrapped in <g> -->
+      <g mask="url(#trailMask)">
+        <path d="M -20,200 C 80,210 150,150 230,120 S 380,110 430,60 C 480,20 520,-10 570,-45"
+              fill="none"
+              stroke="url(#trailGrad)"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-dasharray="8 8"/>
+      </g>
+
+      <!-- Origami Airplane group moving along the exact master path -->
+      <g>
+        <animateMotion dur="4.2s" fill="freeze" rotate="auto" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1">
+          <mpath href="#flightMotionPath"/>
+        </animateMotion>
+
+        <g class="plane-fader">
+          <g class="plane-bank" style="filter: drop-shadow(0 10px 16px rgba(0,0,0,0.45));">
+            <polygon points="54,0 -8,15 4,0" fill="url(#bottomWing)"/>
+            <polygon points="54,0 4,0 7,5 -3,9" fill="url(#foldShade)"/>
+            <polygon points="54,0 -8,-15 4,0" fill="url(#topWing)"/>
+            <line x1="4" y1="0" x2="54" y2="0" stroke="rgba(255,255,255,0.75)" stroke-width="1.2"/>
+          </g>
+        </g>
+      </g>
     </svg>
-    <div class="wa-airplane-glider">
-      <svg class="plane-body-svg" viewBox="0 0 76 46">
-        <defs>
-          <linearGradient id="topWing" x1="0%" y1="0%" x2="100%" y2="50%">
-            <stop offset="0%" stop-color="#FFFFFF"/>
-            <stop offset="100%" stop-color="#E2E8F0"/>
-          </linearGradient>
-          <linearGradient id="bottomWing" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#FF7A45"/>
-            <stop offset="100%" stop-color="#E55A2B"/>
-          </linearGradient>
-          <linearGradient id="foldShade" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#CBD5E1"/>
-            <stop offset="100%" stop-color="#94A3B8"/>
-          </linearGradient>
-        </defs>
-        <!-- Origami Paper Plane (Forward facing right along motion path) -->
-        <polygon points="72,23 8,40 22,23" fill="url(#bottomWing)"/>
-        <polygon points="72,23 22,23 26,29 14,35" fill="url(#foldShade)"/>
-        <polygon points="72,23 8,6 22,23" fill="url(#topWing)"/>
-        <line x1="22" y1="23" x2="72" y2="23" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
-      </svg>
-    </div>
   </div>
 
   <div class="wa-flight-card">
@@ -419,7 +449,7 @@ unset($_SESSION['wa_launch']);
     </div>
 
     <div class="wa-flight-card__timer" id="waFlightTimer">
-      <?= icon('clock', 14) ?> Membuka WhatsApp dalam <strong id="waCountdownSec">2</strong> detik…
+      <?= icon('clock', 14) ?> Membuka WhatsApp dalam <strong id="waCountdownSec">4</strong> detik…
     </div>
 
     <div class="wa-flight-card__actions">
@@ -434,7 +464,6 @@ unset($_SESSION['wa_launch']);
   </div>
 </div>
 <?php endif; ?>
-?>
 
 <section class="kpi-grid">
   <article class="kpi kpi--accent">
@@ -883,7 +912,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }, 80);
     }
 
-    var timeLeft = 2;
+    var timeLeft = 4;
     var timerInterval = setInterval(function () {
       timeLeft--;
       if (countdownSec && timeLeft >= 0) {
@@ -917,7 +946,7 @@ document.addEventListener('DOMContentLoaded', function () {
           setTimeout(function () { overlay.remove(); }, 400);
         }
       }, 2500);
-    }, 2400);
+    }, 4100);
 
     if (btnClose) {
       btnClose.addEventListener('click', function () {
