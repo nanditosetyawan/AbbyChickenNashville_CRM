@@ -46,11 +46,44 @@ while ($v = mysqli_fetch_assoc($q_v)) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
 
-    $jumlah = $_POST['jumlah'] ?? [];
-
     $items = [];
-    if (is_array($jumlah)) {
-        foreach ($jumlah as $menu_id => $qty) {
+    $raw_items = $_POST['items'] ?? null;
+    if (is_array($raw_items) && !empty($raw_items)) {
+        foreach ($raw_items as $entry) {
+            $menu_id = (int) ($entry['menu_id'] ?? 0);
+            $qty     = (int) ($entry['qty'] ?? 0);
+            $catatan = trim((string) ($entry['catatan'] ?? ''));
+            if ($qty <= 0 || $menu_id <= 0) {
+                continue;
+            }
+
+            $stmt = mysqli_prepare($conn, 'SELECT menu_id, name, harga, status_ketersediaan FROM menu WHERE menu_id = ? LIMIT 1');
+            mysqli_stmt_bind_param($stmt, 'i', $menu_id);
+            mysqli_stmt_execute($stmt);
+            $menu = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+            mysqli_stmt_close($stmt);
+
+            if (!$menu) {
+                continue;
+            }
+            if ($menu['status_ketersediaan'] !== 'tersedia') {
+                $error['item'] = 'Menu ' . $menu['name'] . ' sedang tidak tersedia.';
+                continue;
+            }
+            if ($qty > 50) {
+                $qty = 50;
+            }
+            $items[] = [
+                'menu_id'  => (int) $menu['menu_id'],
+                'name'     => $menu['name'],
+                'harga'    => (float) $menu['harga'],
+                'qty'      => $qty,
+                'subtotal' => (float) $menu['harga'] * $qty,
+                'catatan'  => $catatan,
+            ];
+        }
+    } elseif (isset($_POST['jumlah']) && is_array($_POST['jumlah'])) {
+        foreach ($_POST['jumlah'] as $menu_id => $qty) {
             $menu_id = (int) $menu_id;
             $qty     = (int) $qty;
             if ($qty <= 0) {
@@ -79,6 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'harga'    => (float) $menu['harga'],
                 'qty'      => $qty,
                 'subtotal' => (float) $menu['harga'] * $qty,
+                'catatan'  => '',
             ];
         }
     }
@@ -133,9 +167,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_stmt_close($stmt);
 
             /* Simpan detail pesanan */
-            $stmt_detail = mysqli_prepare($conn, 'INSERT INTO detail_pesanan (menu_id, pemesanan_id, jumlah_pesanan, subtotal) VALUES (?, ?, ?, ?)');
+            $stmt_detail = mysqli_prepare($conn, 'INSERT INTO detail_pesanan (menu_id, pemesanan_id, jumlah_pesanan, subtotal, catatan) VALUES (?, ?, ?, ?, ?)');
             foreach ($items as $it) {
-                mysqli_stmt_bind_param($stmt_detail, 'iiid', $it['menu_id'], $pemesanan_id, $it['qty'], $it['subtotal']);
+                $catatan = $it['catatan'] ?? '';
+                mysqli_stmt_bind_param($stmt_detail, 'iiids', $it['menu_id'], $pemesanan_id, $it['qty'], $it['subtotal'], $catatan);
                 mysqli_stmt_execute($stmt_detail);
             }
             mysqli_stmt_close($stmt_detail);
@@ -175,6 +210,22 @@ while ($r = mysqli_fetch_assoc($res_riw)) {
     $riwayat[] = $r;
 }
 mysqli_stmt_close($q_riw);
+
+/* Item detail per pesanan untuk nota */
+$items_per_pesanan = [];
+$q_items = mysqli_prepare($conn, "SELECT d.pemesanan_id, d.jumlah_pesanan, d.subtotal, d.catatan, m.name
+    FROM detail_pesanan d
+    JOIN menu m ON m.menu_id = d.menu_id
+    JOIN pemesanan p ON p.pemesanan_id = d.pemesanan_id
+    WHERE p.member_id = ?
+    ORDER BY d.detail_id ASC");
+mysqli_stmt_bind_param($q_items, 'i', $member_id);
+mysqli_stmt_execute($q_items);
+$res_items = mysqli_stmt_get_result($q_items);
+while ($it = mysqli_fetch_assoc($res_items)) {
+    $items_per_pesanan[$it['pemesanan_id']][] = $it;
+}
+mysqli_stmt_close($q_items);
 
 $tab_aktif = $_GET['tab'] ?? 'pesan';
 
@@ -272,6 +323,23 @@ require_once __DIR__ . '/../../includes/header.php';
             <?php endif; ?>
           </div>
 
+          <?php if (!empty($items_per_pesanan[$p['pemesanan_id']])): ?>
+            <div style="margin: 8px 0 12px; padding: 10px 12px; background: <?= $is_newest ? 'rgba(255,255,255,0.08)' : 'rgba(24,32,21,0.04)' ?>; border-radius: var(--crm-radius-sm); font-size: 12.5px;">
+              <span style="display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; margin-bottom: 5px; opacity: 0.75; color: <?= $is_newest ? '#C0CDC0' : 'var(--crm-sage)' ?>;">Item Pesanan:</span>
+              <?php foreach ($items_per_pesanan[$p['pemesanan_id']] as $it): ?>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; color: <?= $is_newest ? '#FFFFFF' : 'var(--crm-black)' ?>;">
+                  <span>
+                    <?= (int) $it['jumlah_pesanan'] ?>&times; <?= e($it['name']) ?>
+                    <?php if (!empty($it['catatan'])): ?>
+                      <strong style="color: <?= $is_newest ? 'var(--crm-green-accent)' : 'var(--crm-terracotta)' ?>;">(<?= e($it['catatan']) ?>)</strong>
+                    <?php endif; ?>
+                  </span>
+                  <span style="opacity: 0.85; font-size: 12px; font-weight: 600;"><?= rupiah($it['subtotal']) ?></span>
+                </div>
+              <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
+
           <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid <?= $is_newest ? 'rgba(255,255,255,0.12)' : 'rgba(24,32,21,0.08)' ?>; padding-top: 10px;">
             <span style="font-size: 12px; color: <?= $is_newest ? '#C0CDC0' : 'var(--crm-sage)' ?>;">Total Bayar</span>
             <strong style="font-size: 16px; color: <?= $is_newest ? 'var(--crm-green-accent)' : 'var(--crm-terracotta)' ?>;">
@@ -287,6 +355,7 @@ require_once __DIR__ . '/../../includes/header.php';
   <!-- Tab Buat Pesanan Baru -->
   <form id="formPesanan" method="post" action="">
     <?= csrf_field() ?>
+    <div id="cartHiddenInputs"></div>
 
     <!-- Katalog Menu Bento Cards -->
     <div class="crm-list-stack" style="margin-bottom: 20px;">
@@ -301,11 +370,19 @@ require_once __DIR__ . '/../../includes/header.php';
 
           <div class="crm-list-stack">
             <?php foreach ($daftar as $m): ?>
-              <?php $habis = ($m['status_ketersediaan'] !== 'tersedia'); ?>
-              <div class="crm-item-card crm-item-card--tier-cream" style="padding: 14px 16px; flex-direction: column; align-items: stretch; gap: 10px; opacity: <?= $habis ? '0.6' : '1' ?>;">
+              <?php
+              $habis = ($m['status_ketersediaan'] !== 'tersedia');
+              $is_hot = (stripos($m['name'], 'hot') !== false);
+              ?>
+              <div class="crm-item-card crm-item-card--tier-cream" style="padding: 14px 16px; flex-direction: column; align-items: stretch; gap: 10px; opacity: <?= $habis ? '0.6' : '1' ?>;" data-menu-id="<?= (int) $m['menu_id'] ?>" data-is-hot="<?= $is_hot ? '1' : '0' ?>">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                   <div>
-                    <h4 class="crm-item-card__title" style="font-size: 15px;"><?= e($m['name']) ?></h4>
+                    <h4 class="crm-item-card__title" style="font-size: 15px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                      <?= e($m['name']) ?>
+                      <?php if ($is_hot): ?>
+                        <span class="crm-pill-tag crm-pill-tag--terracotta" style="font-size: 10px; padding: 1px 6px;">🔥 Level 1-3</span>
+                      <?php endif; ?>
+                    </h4>
                     <p style="margin: 2px 0 0; font-size: 14px; font-weight: 700; color: var(--crm-forest);">
                       <?= e(rupiah($m['harga'])) ?>
                     </p>
@@ -322,12 +399,15 @@ require_once __DIR__ . '/../../includes/header.php';
                     <div class="qty" style="display: flex; align-items: center; gap: 8px;">
                       <button type="button" data-step="down" aria-label="Kurangi <?= e($m['name']) ?>" style="width: 32px; height: 32px; border-radius: var(--crm-radius-full); border: 1px solid #D5D3C8; background: #FFFFFF; font-weight: 700; cursor: pointer;">&minus;</button>
                       <input type="number" name="jumlah[<?= (int) $m['menu_id'] ?>]"
+                             data-menu-id="<?= (int) $m['menu_id'] ?>"
                              data-harga="<?= (float) $m['harga'] ?>"
                              data-nama="<?= e($m['name']) ?>"
+                             data-is-hot="<?= $is_hot ? '1' : '0' ?>"
                              value="<?= (int) ($_POST['jumlah'][$m['menu_id']] ?? 0) ?>"
                              min="0" max="50" step="1"
                              aria-label="Jumlah <?= e($m['name']) ?>"
-                             style="width: 44px; height: 32px; text-align: center; border-radius: 8px; border: 1px solid #D5D3C8; font-weight: 700; font-size: 14px;">
+                             style="width: 44px; height: 32px; text-align: center; border-radius: 8px; border: 1px solid #D5D3C8; font-weight: 700; font-size: 14px; <?= $is_hot ? 'cursor:pointer;' : '' ?>"
+                             <?= $is_hot ? 'readonly' : '' ?>>
                       <button type="button" data-step="up" aria-label="Tambah <?= e($m['name']) ?>" style="width: 32px; height: 32px; border-radius: var(--crm-radius-full); border: none; background: var(--crm-green-accent); color: var(--crm-black); font-weight: 700; cursor: pointer;">+</button>
                     </div>
                   <?php endif; ?>
@@ -407,8 +487,85 @@ require_once __DIR__ . '/../../includes/header.php';
 
   <script>
     window.__voucherMap = <?= json_encode($voucher_map, JSON_UNESCAPED_UNICODE) ?>;
+    window.__initialItems = <?= json_encode(!empty($items) ? $items : [], JSON_UNESCAPED_UNICODE) ?>;
   </script>
 <?php endif; ?>
+
+<!-- Bottom Sheet Pilihan Level Pedas (Mobile User / Member) -->
+<div class="crm-bottom-sheet-backdrop" id="spicySheetBackdrop"></div>
+<div class="crm-bottom-sheet" id="spicyBottomSheet" aria-hidden="true">
+  <div class="crm-bottom-sheet__handle"></div>
+  <div class="crm-bottom-sheet__head">
+    <div>
+      <h3 class="crm-bottom-sheet__title">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:var(--crm-radius-full);background:rgba(200,90,50,0.15);color:var(--crm-terracotta);font-size:15px;">🔥</span>
+        Level Kepedasan
+      </h3>
+      <p class="crm-bottom-sheet__sub" id="mobileSpicyMenuName">Nashville Hot Chicken</p>
+    </div>
+    <button type="button" class="crm-bottom-sheet__close" id="btnCloseSpicySheet" aria-label="Tutup">&times;</button>
+  </div>
+
+  <div style="margin-top: 14px;">
+    <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--crm-sage);">
+      Pilih Tingkat Pedas
+    </p>
+    <div class="spicy-mobile-options" style="display: flex; flex-direction: column; gap: 8px;">
+      <div class="spicy-mobile-chip is-selected" data-level="Level 1" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: var(--crm-radius-md); border: 2px solid var(--crm-forest); background: var(--crm-forest); color: #FFFFFF; cursor: pointer; transition: all 0.2s;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <input type="radio" name="mobile_spicy_opt" value="Level 1" checked style="accent-color: var(--crm-green-accent);">
+          <div>
+            <strong style="font-size: 14px; display: block;">Level 1</strong>
+            <span style="font-size: 11.5px; opacity: 0.85;">Pedas Sedang</span>
+          </div>
+        </div>
+        <span style="font-size: 16px;">🔥</span>
+      </div>
+
+      <div class="spicy-mobile-chip" data-level="Level 2" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: var(--crm-radius-md); border: 1px solid #D5D3C8; background: var(--crm-sand); color: var(--crm-black); cursor: pointer; transition: all 0.2s;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <input type="radio" name="mobile_spicy_opt" value="Level 2" style="accent-color: var(--crm-green-accent);">
+          <div>
+            <strong style="font-size: 14px; display: block;">Level 2</strong>
+            <span style="font-size: 11.5px; color: var(--crm-sage);">Pedas Ekstra</span>
+          </div>
+        </div>
+        <span style="font-size: 16px;">🔥🔥</span>
+      </div>
+
+      <div class="spicy-mobile-chip" data-level="Level 3" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: var(--crm-radius-md); border: 1px solid #D5D3C8; background: var(--crm-sand); color: var(--crm-black); cursor: pointer; transition: all 0.2s;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <input type="radio" name="mobile_spicy_opt" value="Level 3" style="accent-color: var(--crm-green-accent);">
+          <div>
+            <strong style="font-size: 14px; display: block;">Level 3</strong>
+            <span style="font-size: 11.5px; color: var(--crm-sage);">Super Nashville Hot</span>
+          </div>
+        </div>
+        <span style="font-size: 16px;">🔥🔥🔥</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(24,32,21,0.08);">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+      <span style="font-size: 13px; font-weight: 700; color: var(--crm-black);">Jumlah Porsi</span>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button type="button" id="btnMobileSpicyDown" style="width: 34px; height: 34px; border-radius: var(--crm-radius-full); border: 1px solid #D5D3C8; background: #FFFFFF; font-weight: 700; cursor: pointer; font-size: 16px;">&minus;</button>
+        <input type="number" id="mobileSpicyQty" value="1" min="1" max="50" style="width: 46px; height: 34px; text-align: center; border-radius: 8px; border: 1px solid #D5D3C8; font-weight: 700; font-size: 15px;">
+        <button type="button" id="btnMobileSpicyUp" style="width: 34px; height: 34px; border-radius: var(--crm-radius-full); border: none; background: var(--crm-green-accent); color: var(--crm-black); font-weight: 700; cursor: pointer; font-size: 16px;">+</button>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 13px; color: var(--crm-sage);">
+      <span>Subtotal Pilihan:</span>
+      <strong id="mobileSpicySubtotal" style="font-size: 15px; color: var(--crm-forest);">Rp 32.000</strong>
+    </div>
+
+    <button type="button" class="crm-btn-primary" id="btnMobileSpicyConfirm" style="width: 100%;">
+      <?= icon('check', 16) ?> Oke, Tambahkan
+    </button>
+  </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

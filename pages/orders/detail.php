@@ -87,7 +87,12 @@ require_once __DIR__ . '/../../includes/header.php';
           <tbody>
             <?php foreach ($items_arr as $it): ?>
               <tr>
-                <td class="strong"><?= e($it['name']) ?></td>
+                <td class="strong">
+                  <?= e($it['name']) ?>
+                  <?php if (!empty($it['catatan'])): ?>
+                    <span class="badge badge--warning" style="margin-left:6px;font-size:11px;font-weight:700;">(<?= e($it['catatan']) ?>)</span>
+                  <?php endif; ?>
+                </td>
                 <td><span class="badge badge--neutral"><?= e($it['kategori']) ?></span></td>
                 <td class="num"><?= e(rupiah($it['harga'])) ?></td>
                 <td class="num"><?= (int) $it['jumlah_pesanan'] ?></td>

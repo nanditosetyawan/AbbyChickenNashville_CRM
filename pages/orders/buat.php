@@ -48,7 +48,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     /* Validasi item */
     $items = [];
-    if (is_array($jumlah)) {
+    $raw_items = $_POST['items'] ?? null;
+    if (is_array($raw_items) && !empty($raw_items)) {
+        foreach ($raw_items as $entry) {
+            $menu_id = (int) ($entry['menu_id'] ?? 0);
+            $qty     = (int) ($entry['qty'] ?? 0);
+            $catatan = trim((string) ($entry['catatan'] ?? ''));
+            if ($qty <= 0 || $menu_id <= 0) {
+                continue;
+            }
+            $stmt = mysqli_prepare($conn, 'SELECT menu_id, name, harga, status_ketersediaan FROM menu WHERE menu_id = ? LIMIT 1');
+            mysqli_stmt_bind_param($stmt, 'i', $menu_id);
+            mysqli_stmt_execute($stmt);
+            $menu = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+            mysqli_stmt_close($stmt);
+
+            if (!$menu) {
+                continue;
+            }
+            if ($menu['status_ketersediaan'] !== 'tersedia') {
+                $error['item'] = $menu['name'] . ' sedang tidak tersedia dan tidak bisa dipesan.';
+                continue;
+            }
+            if ($qty > 50) {
+                $error['item'] = 'Jumlah per item maksimal 50 porsi.';
+                $qty = 50;
+            }
+            $items[] = [
+                'menu_id'  => (int) $menu['menu_id'],
+                'name'     => $menu['name'],
+                'harga'    => (float) $menu['harga'],
+                'qty'      => $qty,
+                'subtotal' => (float) $menu['harga'] * $qty,
+                'catatan'  => $catatan,
+            ];
+        }
+    } elseif (is_array($jumlah)) {
         foreach ($jumlah as $menu_id => $qty) {
             $menu_id = (int) $menu_id;
             $qty     = (int) $qty;
@@ -78,6 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'harga'    => (float) $menu['harga'],
                 'qty'      => $qty,
                 'subtotal' => (float) $menu['harga'] * $qty,
+                'catatan'  => '',
             ];
         }
     }
@@ -130,9 +166,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pemesanan_id = mysqli_insert_id($conn);
             mysqli_stmt_close($stmt);
 
-            $stmt_detail = mysqli_prepare($conn, 'INSERT INTO detail_pesanan (menu_id, pemesanan_id, jumlah_pesanan, subtotal) VALUES (?, ?, ?, ?)');
+            $stmt_detail = mysqli_prepare($conn, 'INSERT INTO detail_pesanan (menu_id, pemesanan_id, jumlah_pesanan, subtotal, catatan) VALUES (?, ?, ?, ?, ?)');
             foreach ($items as $it) {
-                mysqli_stmt_bind_param($stmt_detail, 'iiid', $it['menu_id'], $pemesanan_id, $it['qty'], $it['subtotal']);
+                $catatan = $it['catatan'] ?? '';
+                mysqli_stmt_bind_param($stmt_detail, 'iiids', $it['menu_id'], $pemesanan_id, $it['qty'], $it['subtotal'], $catatan);
                 mysqli_stmt_execute($stmt_detail);
             }
             mysqli_stmt_close($stmt_detail);
@@ -162,6 +199,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <form method="post" action="" id="formPesanan" novalidate>
   <?= csrf_field() ?>
+  <div id="cartHiddenInputs"></div>
 
   <section class="detail-grid">
     <div class="stack">
@@ -214,10 +252,18 @@ require_once __DIR__ . '/../../includes/header.php';
               </h3>
               <div class="menu-catalog">
                 <?php foreach ($daftar as $m): ?>
-                  <?php $habis = $m['status_ketersediaan'] !== 'tersedia'; ?>
-                  <div class="menu-card<?= $habis ? ' is-unavailable' : '' ?>">
+                  <?php
+                  $habis = $m['status_ketersediaan'] !== 'tersedia';
+                  $is_hot = (stripos($m['name'], 'hot') !== false);
+                  ?>
+                  <div class="menu-card<?= $habis ? ' is-unavailable' : '' ?>" data-menu-id="<?= (int) $m['menu_id'] ?>" data-is-hot="<?= $is_hot ? '1' : '0' ?>">
                     <div class="menu-card__top">
-                      <span class="menu-card__name"><?= e($m['name']) ?></span>
+                      <span class="menu-card__name">
+                        <?= e($m['name']) ?>
+                        <?php if ($is_hot): ?>
+                          <span style="font-size:11px;background:#FFF4ED;color:#E8590C;padding:2px 6px;border-radius:4px;font-weight:700;margin-left:4px;">🔥 Level 1-3</span>
+                        <?php endif; ?>
+                      </span>
                       <?= $habis ? '<span class="badge badge--danger">Habis</span>' : '' ?>
                     </div>
                     <p class="menu-card__price"><?= e(rupiah($m['harga'])) ?></p>
@@ -228,11 +274,14 @@ require_once __DIR__ . '/../../includes/header.php';
                         <div class="qty">
                           <button type="button" data-step="down" aria-label="Kurangi <?= e($m['name']) ?>">&minus;</button>
                           <input type="number" name="jumlah[<?= (int) $m['menu_id'] ?>]"
+                                 data-menu-id="<?= (int) $m['menu_id'] ?>"
                                  data-harga="<?= (float) $m['harga'] ?>"
                                  data-nama="<?= e($m['name']) ?>"
+                                 data-is-hot="<?= $is_hot ? '1' : '0' ?>"
                                  value="<?= (int) ($_POST['jumlah'][$m['menu_id']] ?? 0) ?>"
                                  min="0" max="50" step="1"
-                                 aria-label="Jumlah <?= e($m['name']) ?>">
+                                 aria-label="Jumlah <?= e($m['name']) ?>"
+                                 <?= $is_hot ? 'readonly style="cursor:pointer;"' : '' ?>>
                           <button type="button" data-step="up" aria-label="Tambah <?= e($m['name']) ?>">+</button>
                         </div>
                       <?php endif; ?>
@@ -310,6 +359,75 @@ require_once __DIR__ . '/../../includes/header.php';
   </section>
 </form>
 
+<!-- Modal Pilihan Level Pedas (Admin & Kasir) -->
+<dialog class="modal" id="modalLevelPedas" style="max-width: 420px; border-radius: 16px;">
+  <div class="modal__head" style="padding: 20px 24px 12px; border-bottom: 1px solid var(--gray-200);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <h2 style="font-size: 17px; font-weight: 700; color: var(--gray-900); display: flex; align-items: center; gap: 8px; margin: 0;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: #FFF4ED; color: #E8590C; font-size: 15px;">🔥</span>
+          Pilih Tingkat Kepedasan
+        </h2>
+        <p id="desktopSpicyMenuName" style="margin: 4px 0 0; font-size: 13px; color: var(--gray-600); font-weight: 600;">Nashville Hot Chicken</p>
+      </div>
+      <button type="button" class="btn-icon" data-modal-close aria-label="Tutup" style="background: none; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--gray-400); padding: 0;">&times;</button>
+    </div>
+  </div>
+
+  <div class="modal__body" style="padding: 20px 24px;">
+    <div style="margin-bottom: 18px;">
+      <label style="display: block; font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gray-600); margin-bottom: 10px;">
+        Pilihan Level:
+      </label>
+      <div class="spicy-level-options" style="display: flex; flex-direction: column; gap: 8px;">
+        <label class="spicy-chip is-selected" data-level="Level 1" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 2px solid #FF6B35; background: #FFF4ED; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <input type="radio" name="spicy_level_opt" value="Level 1" checked style="accent-color: #FF6B35;">
+            <strong style="color: var(--gray-900); font-size: 14px;">Level 1</strong>
+            <span style="font-size: 12px; color: var(--gray-600);">— Sedang</span>
+          </span>
+          <span style="font-size: 14px;">🔥</span>
+        </label>
+        <label class="spicy-chip" data-level="Level 2" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 1px solid var(--gray-300); background: #FFFFFF; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <input type="radio" name="spicy_level_opt" value="Level 2" style="accent-color: #FF6B35;">
+            <strong style="color: var(--gray-900); font-size: 14px;">Level 2</strong>
+            <span style="font-size: 12px; color: var(--gray-600);">— Pedas</span>
+          </span>
+          <span style="font-size: 14px;">🔥🔥</span>
+        </label>
+        <label class="spicy-chip" data-level="Level 3" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 1px solid var(--gray-300); background: #FFFFFF; border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <input type="radio" name="spicy_level_opt" value="Level 3" style="accent-color: #FF6B35;">
+            <strong style="color: var(--gray-900); font-size: 14px;">Level 3</strong>
+            <span style="font-size: 12px; color: var(--gray-600);">— Extra Pedas</span>
+          </span>
+          <span style="font-size: 14px;">🔥🔥🔥</span>
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <label for="desktopSpicyQty" style="display: block; font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gray-600); margin-bottom: 8px;">
+        Jumlah Porsi:
+      </label>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button type="button" id="btnDesktopSpicyDown" class="btn btn--secondary" style="width: 38px; height: 38px; padding: 0; font-size: 18px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">&minus;</button>
+        <input type="number" id="desktopSpicyQty" value="1" min="1" max="50" style="width: 60px; height: 38px; text-align: center; font-size: 15px; font-weight: 700; border: 1px solid var(--gray-300); border-radius: 8px;">
+        <button type="button" id="btnDesktopSpicyUp" class="btn btn--secondary" style="width: 38px; height: 38px; padding: 0; font-size: 18px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">+</button>
+        <span id="desktopSpicySubtotal" style="margin-left: auto; font-size: 14px; font-weight: 700; color: #E8590C;">Rp 32.000</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal__foot" style="padding: 14px 24px 20px; border-top: 1px solid var(--gray-200); background: #FAF9F6; border-radius: 0 0 16px 16px;">
+    <button type="button" class="btn btn--secondary" data-modal-close>Batal</button>
+    <button type="button" class="btn btn--primary" id="btnDesktopSpicyConfirm" style="background: #FF6B35; border-color: #FF6B35;">
+      <?= icon('check', 16) ?> Tambahkan ke Pesanan
+    </button>
+  </div>
+</dialog>
+
 <?php
 /* Peta kode voucher -> potongan, dipakai untuk estimasi total di sisi klien. */
 $voucher_map = [];
@@ -320,6 +438,7 @@ while ($v = mysqli_fetch_assoc($voucher_aktif)) {
 ?>
 <script>
 window.__voucherMap = <?= json_encode($voucher_map, JSON_UNESCAPED_UNICODE) ?>;
+window.__initialItems = <?= json_encode(!empty($items) ? $items : [], JSON_UNESCAPED_UNICODE) ?>;
 </script>
 <?php
 $page_script = 'assets/js/orders.js';

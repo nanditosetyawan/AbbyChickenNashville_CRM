@@ -28,6 +28,7 @@ CREATE TABLE `detail_pesanan` (
   `pemesanan_id` int(11) NOT NULL,
   `jumlah_pesanan` int(11) NOT NULL,
   `subtotal` decimal(10,2) NOT NULL,
+  `catatan` varchar(100) DEFAULT '',
   PRIMARY KEY (`detail_id`),
   KEY `idx_detail_pemesanan` (`pemesanan_id`),
   KEY `idx_detail_menu` (`menu_id`),
