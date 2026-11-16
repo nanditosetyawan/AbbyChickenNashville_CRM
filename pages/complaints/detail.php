@@ -12,7 +12,9 @@ $role       = $_SESSION['role'];
 $pegawai_id = (int) $_SESSION['pegawai_id'];
 $id         = (int) ($_GET['id'] ?? 0);
 
-$stmt = mysqli_prepare($conn, "SELECT t.*, m.name AS nama_member, m.email, m.no_telp, m.total_poin,
+$stmt = mysqli_prepare($conn, "SELECT t.tiket_id, t.pegawai_id, t.member_id, t.kategori_keluhan, t.isi_keluhan, t.status, t.created_at, t.closed_at,
+        (t.foto IS NOT NULL) AS has_foto,
+        m.name AS nama_member, m.email, m.no_telp, m.total_poin,
         pg.nama AS nama_pic
     FROM tiket t
     JOIN member m ON m.member_id = t.member_id
@@ -87,6 +89,28 @@ require_once __DIR__ . '/../../includes/header.php';
 
       <div class="card__body">
         <p style="white-space:pre-line"><?= e($tiket['isi_keluhan']) ?></p>
+
+        <?php if (!empty($tiket['has_foto'])): ?>
+          <div class="complaint-photo-section" style="margin-top:20px; padding-top:16px; border-top:1px solid #E5E0D8;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+              <strong style="font-size:13px; display:inline-flex; align-items:center; gap:6px; color:#23331D;">
+                <?= icon('camera', 16) ?> Foto Bukti Keluhan Pelanggan
+              </strong>
+              <a class="btn btn--secondary btn--sm" href="<?= e(base_url('pages/complaints/view_foto.php?id=' . $id)) ?>" target="_blank">
+                <?= icon('eye', 14) ?> Buka Tab Baru &nearr;
+              </a>
+            </div>
+            <div style="background:#F9F8F5; border:1px solid #E5E0D8; border-radius:8px; padding:10px; display:inline-block; max-width:100%;">
+              <a href="<?= e(base_url('pages/complaints/view_foto.php?id=' . $id)) ?>" target="_blank" title="Klik untuk memperbesar">
+                <img src="<?= e(base_url('pages/complaints/view_foto.php?id=' . $id)) ?>" alt="Bukti Tiket #<?= (int) $id ?>" style="max-width:100%; max-height:360px; object-fit:contain; border-radius:6px; display:block;">
+              </a>
+            </div>
+          </div>
+        <?php else: ?>
+          <p class="text-small text-muted" style="margin-top:14px; font-style:italic;">
+            Tidak ada lampiran foto bukti dari pelanggan.
+          </p>
+        <?php endif; ?>
       </div>
 
       <?php if ($tiket['closed_at']): ?>

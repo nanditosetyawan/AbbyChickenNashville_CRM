@@ -321,6 +321,8 @@ CREATE TABLE `tiket` (
   `member_id` int(11) NOT NULL,
   `kategori_keluhan` enum('Kualitas Makanan','Pelayanan','Kebersihan','Lainnya') NOT NULL,
   `isi_keluhan` text NOT NULL,
+  `foto` mediumblob DEFAULT NULL,
+  `foto_mime` varchar(50) DEFAULT NULL,
   `status` enum('open','in_progress','closed') NOT NULL DEFAULT 'open',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `closed_at` timestamp NULL DEFAULT NULL,

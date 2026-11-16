@@ -42,10 +42,41 @@ mysqli_stmt_bind_param($stmt, 'i', $data['member_id']);
         $error['isi_keluhan'] = 'Isi keluhan maksimal 1000 karakter.';
     }
 
+    $foto_blob = null;
+    $foto_mime = null;
+
+    if (isset($_FILES['foto']) && $_FILES['foto']['error'] !== UPLOAD_ERR_NO_FILE) {
+        if ($_FILES['foto']['error'] !== UPLOAD_ERR_OK) {
+            $error['foto'] = 'Gagal mengunggah foto. Silakan coba lagi.';
+        } elseif ($_FILES['foto']['size'] > 2 * 1024 * 1024) {
+            $error['foto'] = 'Ukuran foto maksimal 2 MB.';
+        } else {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime  = finfo_file($finfo, $_FILES['foto']['tmp_name']);
+            finfo_close($finfo);
+
+            $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+            if (!in_array($mime, $allowed, true)) {
+                $error['foto'] = 'Format file tidak didukung. Gunakan JPG, PNG, atau WebP.';
+            } else {
+                $foto_blob = file_get_contents($_FILES['foto']['tmp_name']);
+                $foto_mime = ($mime === 'image/jpg') ? 'image/jpeg' : $mime;
+            }
+        }
+    }
+
     if (empty($error)) {
         // pegawai_id NULL sampai di-assign admin (US-4.1).
-        $stmt = mysqli_prepare($conn, "INSERT INTO tiket (pegawai_id, member_id, kategori_keluhan, isi_keluhan, status) VALUES (NULL, ?, ?, ?, 'open')");
-        mysqli_stmt_bind_param($stmt, 'iss', $data['member_id'], $data['kategori_keluhan'], $data['isi_keluhan']);
+        if ($foto_blob !== null) {
+            $stmt = mysqli_prepare($conn, "INSERT INTO tiket (pegawai_id, member_id, kategori_keluhan, isi_keluhan, foto, foto_mime, status) VALUES (NULL, ?, ?, ?, ?, ?, 'open')");
+            $null = null;
+            mysqli_stmt_bind_param($stmt, 'issbs', $data['member_id'], $data['kategori_keluhan'], $data['isi_keluhan'], $null, $foto_mime);
+            mysqli_stmt_send_long_data($stmt, 3, $foto_blob);
+        } else {
+            $stmt = mysqli_prepare($conn, "INSERT INTO tiket (pegawai_id, member_id, kategori_keluhan, isi_keluhan, status) VALUES (NULL, ?, ?, ?, 'open')");
+            mysqli_stmt_bind_param($stmt, 'iss', $data['member_id'], $data['kategori_keluhan'], $data['isi_keluhan']);
+        }
+
         if (mysqli_stmt_execute($stmt)) {
             $tiket_id = mysqli_insert_id($conn);
             mysqli_stmt_close($stmt);
@@ -65,7 +96,7 @@ $page_actions  = '<a class="btn btn--secondary" href="' . e(base_url('pages/comp
 require_once __DIR__ . '/../../includes/header.php';
 ?>
 
-<form class="card" method="post" action="" novalidate>
+<form class="card" method="post" action="" enctype="multipart/form-data" novalidate>
   <?= csrf_field() ?>
   <div class="card__head">
     <div>
@@ -116,6 +147,16 @@ require_once __DIR__ . '/../../includes/header.php';
           <span class="error"><?= e($error['isi_keluhan']) ?></span>
         <?php else: ?>
           <span class="hint">Minimal 10 karakter, maksimal 1000 karakter.</span>
+        <?php endif; ?>
+      </div>
+
+      <div class="field field--full">
+        <label for="foto">Foto Bukti Keluhan <span class="hint" style="font-weight:normal;">(Opsional, format JPG, PNG, WebP maks. 2MB)</span></label>
+        <input class="input<?= isset($error['foto']) ? ' is-invalid' : '' ?>" type="file" id="foto" name="foto" accept="image/jpeg,image/png,image/webp">
+        <?php if (isset($error['foto'])): ?>
+          <span class="error"><?= e($error['foto']) ?></span>
+        <?php else: ?>
+          <span class="hint">Foto disimpan langsung secara aman ke database.</span>
         <?php endif; ?>
       </div>
     </div>

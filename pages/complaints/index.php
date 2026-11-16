@@ -19,7 +19,9 @@ if (!in_array($status, ['semua', 'open', 'in_progress', 'closed'], true)) {
 
 $cari = trim($_GET['q'] ?? '');
 
-$sql = "SELECT t.*, m.name AS nama_member, m.email, pg.nama AS nama_pic
+$sql = "SELECT t.tiket_id, t.pegawai_id, t.member_id, t.kategori_keluhan, t.isi_keluhan, t.status, t.created_at, t.closed_at,
+        (t.foto IS NOT NULL) AS has_foto,
+        m.name AS nama_member, m.email, pg.nama AS nama_pic
     FROM tiket t
     JOIN member m ON m.member_id = t.member_id
     LEFT JOIN pegawai pg ON pg.pegawai_id = t.pegawai_id
@@ -174,7 +176,16 @@ require_once __DIR__ . '/../../includes/header.php';
               </td>
               <td>
                 <div class="cell-stack">
-                  <span><?= e($t['kategori_keluhan']) ?></span>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <span><?= e($t['kategori_keluhan']) ?></span>
+                    <?php if (!empty($t['has_foto'])): ?>
+                      <a href="<?= e(base_url('pages/complaints/view_foto.php?id=' . (int) $t['tiket_id'])) ?>" target="_blank"
+                         class="badge" title="Tiket ini memiliki lampiran foto bukti"
+                         style="font-size:10.5px; padding:2px 6px; display:inline-flex; align-items:center; gap:3px; background:#EAE6DC; color:#23331D; text-decoration:none; border-radius:4px;">
+                        <?= icon('camera', 11) ?> Foto
+                      </a>
+                    <?php endif; ?>
+                  </div>
                   <small><?= e(potong($t['isi_keluhan'], 70)) ?></small>
                 </div>
               </td>
