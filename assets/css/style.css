@@ -1012,6 +1012,148 @@ img { max-width: 100%; display: block; }
 
 .mini-list__name small { display: block; color: var(--gray-500); font-size: 11.5px; }
 
+/* 5 Menu Terlaris Dashboard */
+.top-menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.top-menu-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--gray-100);
+  transition: background var(--transition, 0.15s ease);
+}
+
+.top-menu-item:hover {
+  background: #FAFAFA;
+}
+
+.top-menu-item:last-child {
+  border-bottom: none;
+}
+
+.top-menu-rank {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-control);
+  font-size: 12px;
+  font-weight: 700;
+  flex: none;
+  margin-top: 1px;
+}
+
+.top-menu-rank--1 {
+  background: #FFF0EB;
+  color: var(--orange-dark);
+  border: 1px solid #FFD4C2;
+}
+
+.top-menu-rank--2 {
+  background: #E8F7F6;
+  color: var(--teal-dark);
+  border: 1px solid #B8EBE6;
+}
+
+.top-menu-rank--3 {
+  background: #FFF8E6;
+  color: #946800;
+  border: 1px solid #FFE4A3;
+}
+
+.top-menu-rank--4,
+.top-menu-rank--5 {
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border: 1px solid var(--gray-200);
+}
+
+.top-menu-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.top-menu-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.top-menu-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-menu-qty {
+  font-size: 12px;
+  color: var(--gray-600);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.top-menu-qty strong {
+  color: var(--orange-dark);
+  font-weight: 700;
+}
+
+.top-menu-bar-track {
+  width: 100%;
+  height: 5px;
+  background: var(--gray-100);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.top-menu-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--orange);
+  transition: width 0.3s ease;
+}
+
+.top-menu-bar-fill--2 {
+  background: var(--teal);
+}
+
+.top-menu-bar-fill--3 {
+  background: var(--amber);
+}
+
+.top-menu-bar-fill--4,
+.top-menu-bar-fill--5 {
+  background: var(--gray-500);
+}
+
+.top-menu-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--gray-500);
+}
+
+.top-menu-omset {
+  font-weight: 600;
+  color: var(--teal-dark);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
 /* =====================================================================
    Toggle switch
    ===================================================================== */

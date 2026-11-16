@@ -85,6 +85,30 @@ while ($row = mysqli_fetch_assoc($q)) {
     $pesanan_terbaru[] = $row;
 }
 
+/* ------------------------------------------------- 5 Menu Terlaris */
+$menu_terlaris = [];
+$max_terjual = 1;
+if (in_array($role, ['Admin', 'Pimpinan'], true)) {
+    $q_terlaris = mysqli_query($conn, "SELECT m.menu_id, m.name, m.kategori, m.harga,
+            COALESCE(SUM(dp.jumlah_pesanan), 0) AS total_terjual,
+            COALESCE(SUM(dp.subtotal), 0) AS total_omset
+        FROM menu m
+        JOIN detail_pesanan dp ON dp.menu_id = m.menu_id
+        JOIN pemesanan p ON p.pemesanan_id = dp.pemesanan_id
+        WHERE p.status_pesanan <> 'dibatalkan'
+        GROUP BY m.menu_id, m.name, m.kategori, m.harga
+        ORDER BY total_terjual DESC, total_omset DESC, m.name ASC
+        LIMIT 5");
+    if ($q_terlaris) {
+        while ($row = mysqli_fetch_assoc($q_terlaris)) {
+            $menu_terlaris[] = $row;
+        }
+    }
+    if (!empty($menu_terlaris)) {
+        $max_terjual = max(1, (int) $menu_terlaris[0]['total_terjual']);
+    }
+}
+
 /* ------------------------------------------------- Aktivitas terbaru */
 $aktivitas = [];
 $q = mysqli_query($conn, "SELECT 'pesanan' AS jenis, p.pemesanan_id AS ref, p.waktu_pemesanan AS waktu,
@@ -321,6 +345,53 @@ require_once __DIR__ . '/../../includes/header.php';
   </div>
 
   <div class="stack">
+    <?php if (in_array($role, ['Admin', 'Pimpinan'], true)): ?>
+      <article class="card">
+        <div class="card__head">
+          <div>
+            <h2>5 Menu terlaris</h2>
+            <p>Urutan menu paling banyak dipesan dari transaksi valid.</p>
+          </div>
+          <?php if ($role !== 'Pimpinan'): ?>
+            <div class="card__head-actions">
+              <a class="link-quiet" href="<?= e(base_url('pages/menu/index.php')) ?>">Kelola menu</a>
+            </div>
+          <?php endif; ?>
+        </div>
+        <?php if (empty($menu_terlaris)): ?>
+          <div class="empty">
+            <div class="empty__icon"><?= icon('chart', 20) ?></div>
+            <h3>Belum ada data penjualan</h3>
+            <p>Menu terlaris akan otomatis dihitung setelah ada pesanan masuk.</p>
+          </div>
+        <?php else: ?>
+          <ul class="top-menu-list">
+            <?php foreach ($menu_terlaris as $idx => $m):
+              $rank = $idx + 1;
+              $pct = $max_terjual > 0 ? round(($m['total_terjual'] / $max_terjual) * 100, 1) : 0;
+            ?>
+              <li class="top-menu-item">
+                <span class="top-menu-rank top-menu-rank--<?= $rank ?>">#<?= $rank ?></span>
+                <div class="top-menu-info">
+                  <div class="top-menu-row">
+                    <span class="top-menu-name" title="<?= e($m['name']) ?>"><?= e($m['name']) ?></span>
+                    <span class="top-menu-qty"><strong><?= (int) $m['total_terjual'] ?></strong> dipesan</span>
+                  </div>
+                  <div class="top-menu-bar-track">
+                    <div class="top-menu-bar-fill top-menu-bar-fill--<?= $rank ?>" style="width: <?= $pct ?>%;"></div>
+                  </div>
+                  <div class="top-menu-meta">
+                    <span><?= e($m['kategori']) ?> &middot; <?= e(rupiah($m['harga'])) ?></span>
+                    <span class="top-menu-omset">Total <?= e(rupiah($m['total_omset'])) ?></span>
+                  </div>
+                </div>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        <?php endif; ?>
+      </article>
+    <?php endif; ?>
+
     <article class="card">
       <div class="card__head">
         <div>
