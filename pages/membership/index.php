@@ -52,7 +52,8 @@ $total_nonaktif = $total_semua - $total_aktif;
 $page_title    = 'Membership';
 $page_subtitle = 'Data pelanggan terdaftar, poin loyalty, dan riwayat belanja.';
 $active_menu   = 'membership';
-$page_actions  = '<a class="btn btn--primary" href="' . e(base_url('pages/membership/tambah.php')) . '">' . icon('plus', 16) . ' Daftarkan member</a>';
+$page_actions  = '<a class="btn btn--secondary" href="' . e(base_url('pages/membership/export.php')) . '">' . icon('download', 16) . ' Export CSV</a>'
+    . '<a class="btn btn--primary" href="' . e(base_url('pages/membership/tambah.php')) . '">' . icon('plus', 16) . ' Daftarkan member</a>';
 
 require_once __DIR__ . '/../../includes/header.php';
 ?>
