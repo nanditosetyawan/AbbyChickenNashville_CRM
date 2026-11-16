@@ -230,14 +230,14 @@ require_once __DIR__ . '/../../includes/header.php';
         <input type="file" id="crmFotoInput" name="foto" accept="image/jpeg,image/png,image/webp" style="display:none;">
         <input type="hidden" name="foto_base64" id="crmFotoBase64">
         
-        <div class="crm-upload-empty" id="crmUploadEmpty" onclick="document.getElementById('crmFotoInput').click();">
+        <div class="crm-upload-empty" id="crmUploadEmpty" onclick="crmOpenSourceModal();">
           <div class="crm-upload-icon"><?= icon('camera', 22) ?></div>
           <p class="crm-upload-title">Ketuk untuk mengambil atau memilih foto bukti</p>
-          <span class="crm-upload-hint">Foto makanan/struk &middot; JPG, PNG, WebP</span>
+          <span class="crm-upload-hint">Foto makanan/struk &middot; Kamera atau Galeri</span>
         </div>
 
         <div class="crm-upload-preview" id="crmUploadPreview" style="display:none;">
-          <img id="crmPreviewImg" src="" alt="Pratinjau Foto">
+          <img id="crmPreviewImg" src="" alt="Pratinjau Foto" onclick="crmOpenSourceModal();" title="Ketuk untuk mengganti foto">
           <button type="button" class="crm-upload-remove" id="crmBtnRemovePhoto" title="Hapus foto">&times;</button>
           <div class="crm-upload-meta" id="crmUploadMeta">Foto terlampir &middot; Siap dikirim</div>
         </div>
@@ -253,6 +253,81 @@ require_once __DIR__ . '/../../includes/header.php';
   </form>
 <?php endif; ?>
 
+<!-- Modal Pemilih Sumber Foto (Kamera atau Galeri) -->
+<div class="crm-source-backdrop" id="crmSourceModal" style="display:none;" onclick="crmCloseSourceModal(event)">
+  <div class="crm-source-sheet" onclick="event.stopPropagation()">
+    <div class="crm-source-sheet__handle"></div>
+    <h3 class="crm-source-sheet__title">Pilih Sumber Foto Bukti</h3>
+    <p class="crm-source-sheet__sub">Ambil foto baru dengan kamera atau pilih berkas gambar dari perangkat Anda</p>
+
+    <div class="crm-source-options">
+      <!-- Opsi 1: Kamera Langsung -->
+      <button type="button" class="crm-source-option" id="btnOptCamera" onclick="crmStartCamera()">
+        <div class="crm-source-option__icon crm-source-option__icon--camera">
+          <?= icon('camera', 22) ?>
+        </div>
+        <div class="crm-source-option__text">
+          <strong>Ambil Foto dari Kamera</strong>
+          <small>Membuka kamera perangkat langsung &amp; meminta izin browser</small>
+        </div>
+        <span class="crm-source-option__arrow">&rsaquo;</span>
+      </button>
+
+      <!-- Opsi 2: Galeri / File -->
+      <button type="button" class="crm-source-option" id="btnOptGallery" onclick="crmChooseGallery()">
+        <div class="crm-source-option__icon crm-source-option__icon--gallery">
+          <?= icon('image', 22) ?>
+        </div>
+        <div class="crm-source-option__text">
+          <strong>Pilih dari Galeri / Berkas</strong>
+          <small>Pilih dari galeri foto atau file manager HP / komputer</small>
+        </div>
+        <span class="crm-source-option__arrow">&rsaquo;</span>
+      </button>
+    </div>
+
+    <button type="button" class="crm-source-cancel" onclick="crmCloseSourceModal()">
+      Batal
+    </button>
+  </div>
+</div>
+
+<!-- Modal Kamera Beneran (HTML5 WebRTC getUserMedia) -->
+<div class="crm-camera-modal" id="crmCameraModal" style="display:none;">
+  <div class="crm-camera-header">
+    <h3><?= icon('camera', 18) ?> <span>Kamera Bukti Keluhan</span></h3>
+    <button type="button" class="crm-camera-close-btn" onclick="crmStopCamera()">&times;</button>
+  </div>
+
+  <div class="crm-camera-viewfinder">
+    <video class="crm-camera-video" id="crmCameraVideo" autoplay playsinline muted></video>
+    <div class="crm-camera-guide"></div>
+
+    <div class="crm-camera-permission-hint" id="crmCameraStatus" style="display:none;">
+      <p id="crmCameraStatusMsg">Meminta izin akses kamera ke browser...</p>
+      <button type="button" class="crm-btn-primary" id="crmBtnFallbackGallery" style="display:none; margin-top:10px; font-size:12px; padding:8px 14px;" onclick="crmStopCamera(); crmChooseGallery();">
+        Buka Galeri Sebagai Ganti
+      </button>
+    </div>
+  </div>
+
+  <div class="crm-camera-controls">
+    <button type="button" class="crm-camera-btn-cancel" onclick="crmStopCamera()">
+      Batal
+    </button>
+
+    <button type="button" class="crm-camera-shutter" id="crmBtnShutter" onclick="crmCapturePhoto()" title="Ambil Foto">
+      <div class="crm-camera-shutter__inner"></div>
+    </button>
+
+    <button type="button" class="crm-camera-btn-flip" id="crmBtnFlipCamera" onclick="crmFlipCamera()" title="Putar Kamera Depan/Belakang">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 7h-7l3-3m-3 3l3 3"/><path d="M4 17h7l-3 3m3-3l-3-3"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
 <!-- Lightbox Modal Foto Keluhan (User) -->
 <div class="crm-modal-lightbox" id="crmFotoModal" style="display:none;" onclick="crmCloseFotoModal(event)">
   <div class="crm-modal-lightbox__content" onclick="event.stopPropagation()">
@@ -267,7 +342,158 @@ require_once __DIR__ . '/../../includes/header.php';
 </div>
 
 <script>
-// Smart Client-Side Image Resizer & Preview (Format 2: DB BLOB)
+// Variabel & Status Kamera WebRTC
+var cameraStream = null;
+var currentFacingMode = 'environment'; // default kamera belakang (untuk foto makanan/struk)
+
+function crmOpenSourceModal() {
+  var modal = document.getElementById('crmSourceModal');
+  if (modal) modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function crmCloseSourceModal(e) {
+  var modal = document.getElementById('crmSourceModal');
+  if (modal) modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function crmChooseGallery() {
+  crmCloseSourceModal();
+  var fileInput = document.getElementById('crmFotoInput');
+  if (fileInput) fileInput.click();
+}
+
+function crmStartCamera() {
+  crmCloseSourceModal();
+  var camModal = document.getElementById('crmCameraModal');
+  var video = document.getElementById('crmCameraVideo');
+  var statusBox = document.getElementById('crmCameraStatus');
+  var statusMsg = document.getElementById('crmCameraStatusMsg');
+  var btnFallback = document.getElementById('crmBtnFallbackGallery');
+
+  if (!camModal || !video) return;
+
+  camModal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  statusBox.style.display = 'block';
+  statusMsg.innerHTML = 'Meminta izin akses kamera...<br><small style="color:#C0CDC0;">Mohon klik <strong>Allow / Izinkan</strong> pada notifikasi browser.</small>';
+  btnFallback.style.display = 'none';
+
+  // Cek dukungan navigator.mediaDevices.getUserMedia
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    statusMsg.innerHTML = 'Browser tidak mendukung akses kamera langsung.<br>Silakan pilih foto dari galeri perangkat Anda.';
+    btnFallback.style.display = 'inline-block';
+    return;
+  }
+
+  // Hentikan stream lama jika ada
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(function (t) { t.stop(); });
+    cameraStream = null;
+  }
+
+  var constraints = {
+    audio: false,
+    video: {
+      facingMode: { ideal: currentFacingMode },
+      width: { ideal: 1280 },
+      height: { ideal: 720 }
+    }
+  };
+
+  navigator.mediaDevices.getUserMedia(constraints)
+    .then(function (stream) {
+      cameraStream = stream;
+      video.srcObject = stream;
+      video.onloadedmetadata = function () {
+        video.play();
+        statusBox.style.display = 'none';
+      };
+    })
+    .catch(function (err) {
+      console.warn('Camera error:', err);
+      statusBox.style.display = 'block';
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        statusMsg.innerHTML = '<strong style="color:var(--crm-terracotta);">Izin kamera tidak diizinkan / ditolak.</strong><br>Aktifkan izin kamera pada ikon gembok browser, atau pilih foto dari galeri.';
+      } else {
+        statusMsg.innerHTML = '<strong style="color:var(--crm-terracotta);">Kamera tidak dapat diakses.</strong><br>' + (err.message || 'Perangkat kamera sedang dipakai aplikasi lain.');
+      }
+      btnFallback.style.display = 'inline-block';
+    });
+}
+
+function crmStopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(function (t) { t.stop(); });
+    cameraStream = null;
+  }
+  var video = document.getElementById('crmCameraVideo');
+  if (video) video.srcObject = null;
+  var camModal = document.getElementById('crmCameraModal');
+  if (camModal) camModal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function crmFlipCamera() {
+  currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+  crmStartCamera();
+}
+
+function crmCapturePhoto() {
+  var video = document.getElementById('crmCameraVideo');
+  if (!video || !cameraStream) return;
+
+  var w = video.videoWidth || 640;
+  var h = video.videoHeight || 480;
+  var maxDim = 1200;
+
+  if (w > maxDim || h > maxDim) {
+    if (w > h) {
+      h = Math.round(h * (maxDim / w));
+      w = maxDim;
+    } else {
+      w = Math.round(w * (maxDim / h));
+      h = maxDim;
+    }
+  }
+
+  var canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  var ctx = canvas.getContext('2d');
+
+  // Jika kamera depan, flip horizontal agar natural seperti cermin
+  if (currentFacingMode === 'user') {
+    ctx.translate(w, 0);
+    ctx.scale(-1, 1);
+  }
+
+  ctx.drawImage(video, 0, 0, w, h);
+
+  // Kompresi kualitas 0.82 JPEG
+  var dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+
+  var base64Input = document.getElementById('crmFotoBase64');
+  var previewImg = document.getElementById('crmPreviewImg');
+  var emptyBox = document.getElementById('crmUploadEmpty');
+  var previewBox = document.getElementById('crmUploadPreview');
+  var metaText = document.getElementById('crmUploadMeta');
+
+  if (base64Input) base64Input.value = dataUrl;
+  if (previewImg) previewImg.src = dataUrl;
+
+  var estKb = Math.round((dataUrl.length * 3 / 4) / 1024);
+  if (metaText) metaText.textContent = 'Foto kamera terlampir (' + estKb + ' KB) · Siap dikirim';
+
+  if (emptyBox) emptyBox.style.display = 'none';
+  if (previewBox) previewBox.style.display = 'block';
+
+  // Hentikan dan tutup kamera
+  crmStopCamera();
+}
+
+// Smart Client-Side Image Resizer & Preview dari Galeri File
 (function () {
   var input = document.getElementById('crmFotoInput');
   var base64Input = document.getElementById('crmFotoBase64');
@@ -294,7 +520,6 @@ require_once __DIR__ . '/../../includes/header.php';
     reader.onload = function (e) {
       var img = new Image();
       img.onload = function () {
-        // Resize menggunakan canvas off-screen agar hemat memori & database
         var maxDim = 1200;
         var w = img.width;
         var h = img.height;
@@ -315,14 +540,12 @@ require_once __DIR__ . '/../../includes/header.php';
         var ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
 
-        // Kompresi ke format JPEG kualitas 0.8
-        var compressedData = canvas.toDataURL('image/jpeg', 0.8);
+        var compressedData = canvas.toDataURL('image/jpeg', 0.82);
         base64Input.value = compressedData;
         previewImg.src = compressedData;
 
-        // Hitung estimasi ukuran setelah kompresi
         var estKb = Math.round((compressedData.length * 3 / 4) / 1024);
-        metaText.textContent = 'Foto terlampir (' + estKb + ' KB) · Siap dikirim';
+        metaText.textContent = 'Foto galeri terlampir (' + estKb + ' KB) · Siap dikirim';
 
         emptyBox.style.display = 'none';
         previewBox.style.display = 'block';

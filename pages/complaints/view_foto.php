@@ -58,3 +58,4 @@ header('Cache-Control: private, max-age=86400');
 header('X-Content-Type-Options: nosniff');
 echo $binary;
 exit;
+
