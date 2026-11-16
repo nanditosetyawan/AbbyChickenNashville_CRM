@@ -218,6 +218,8 @@
       if (sub) sub.textContent = 'Bebas tambah sepuasnya untuk dine-in';
       var tbox = document.getElementById('userTimerBox');
       if (tbox) tbox.style.display = 'none';
+      var tInline = document.getElementById('userRefillTimerInline');
+      if (tInline) tInline.style.display = 'none';
     }
 
     var pesanBanner = document.getElementById('userPesanRefillBanner');

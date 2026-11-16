@@ -371,21 +371,14 @@ body.crm-member-body {
 .crm-card-refill {
   position: relative;
   border-radius: var(--crm-radius-lg);
-  padding: 18px 20px;
+  padding: 20px;
   margin-bottom: 16px;
   box-shadow: var(--crm-shadow-card);
   transition: all var(--crm-transition-fast);
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-sizing: border-box;
-}
-
-.crm-card-refill__top {
-  display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
+  box-sizing: border-box;
 }
 
 .crm-card-refill.is-ready {
@@ -477,6 +470,21 @@ body.crm-member-body {
   margin: 0;
   font-size: 17px;
   font-weight: 700;
+}
+
+.crm-card-refill__timer-inline {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--crm-terracotta);
+  margin: 3px 0 2px;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.crm-card-refill.is-ready .crm-card-refill__timer-inline {
+  display: none !important;
 }
 
 .crm-card-refill__sub {

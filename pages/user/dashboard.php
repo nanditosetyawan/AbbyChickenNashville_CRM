@@ -87,70 +87,23 @@ require_once __DIR__ . '/../../includes/header.php';
          id="userRefillCard"
          data-status="<?= e($refill_info['status']) ?>"
          data-target-ts="<?= (int) $refill_info['timer_ts'] ?>">
-  <div class="crm-card-refill__top">
-    <div class="crm-card-refill__left">
-      <div class="crm-card-refill__icon" aria-hidden="true">
-        <?= icon('rice', 28) ?>
-      </div>
-      <div>
-        <h3 class="crm-card-refill__title">Refill Nasi</h3>
-        <p class="crm-card-refill__sub" id="userRefillSub">
-          <?php if ($refill_info['is_ready']): ?>
-            Bebas tambah sepuasnya untuk dine-in
-          <?php elseif ($refill_info['has_timer']): ?>
-            Sedang dimasak ulang di dapur
-          <?php else: ?>
-            Sedang disiapkan ulang di dapur
-          <?php endif; ?>
-        </p>
-      </div>
+  <div class="crm-card-refill__left">
+    <div class="crm-card-refill__icon" aria-hidden="true">
+      <?= icon('rice', 28) ?>
     </div>
-    <span class="crm-card-refill__badge<?= $refill_info['has_timer'] ? ' crm-card-refill__badge--timer' : '' ?>" id="userRefillBadge">
-      <?php if ($refill_info['is_ready']): ?>
-        Ready
-      <?php elseif ($refill_info['has_timer']): ?>
-        <span class="crm-timer-pulse"></span> Dimasak
-      <?php else: ?>
-        Habis
-      <?php endif; ?>
-    </span>
-  </div>
-
-  <!-- Box Timer Restok Otomatis (Tampil saat tidak restok & timer aktif) -->
-  <div class="crm-refill-timer-box" id="userTimerBox" style="<?= $refill_info['has_timer'] ? '' : 'display:none;' ?>">
-    <div class="crm-refill-timer-box__header">
-      <div class="crm-refill-timer-box__label">
-        <svg class="crm-timer-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>Tersedia Kembali Dalam:</span>
+    <div>
+      <h3 class="crm-card-refill__title">Refill Nasi</h3>
+      <div class="crm-card-refill__timer-inline" id="userRefillTimerInline" style="<?= $refill_info['has_timer'] ? '' : 'display:none;' ?>">
+        Tersedia dalam: <strong id="userRefillCdInline">--:--:--</strong>
       </div>
-      <span class="crm-refill-timer-box__target" id="userTimerTarget">
-        <?= !empty($refill_info['timer_ts']) ? date('H:i', $refill_info['timer_ts']) . ' WIB' : '' ?>
-      </span>
-    </div>
-
-    <div class="crm-refill-timer-digits" id="userRefillCountdown">
-      <div class="crm-timer-unit-group">
-        <span class="crm-timer-val" id="userCdHours">00</span>
-        <span class="crm-timer-lbl">JAM</span>
-      </div>
-      <span class="crm-timer-sep">:</span>
-      <div class="crm-timer-unit-group">
-        <span class="crm-timer-val" id="userCdMinutes">00</span>
-        <span class="crm-timer-lbl">MNT</span>
-      </div>
-      <span class="crm-timer-sep">:</span>
-      <div class="crm-timer-unit-group">
-        <span class="crm-timer-val" id="userCdSeconds">00</span>
-        <span class="crm-timer-lbl">DTK</span>
-      </div>
-    </div>
-
-    <div class="crm-refill-timer-footer">
-      <span class="crm-refill-timer-note">
-        Estimasi otomatis restok &middot; Nasi hangat pulen siap disajikan lagi
-      </span>
+      <p class="crm-card-refill__sub" id="userRefillSub">
+        <?= $refill_info['is_ready'] || $refill_info['has_timer'] ? 'Bebas tambah sepuasnya untuk dine-in' : 'Sedang disiapkan ulang di dapur' ?>
+      </p>
     </div>
   </div>
+  <span class="crm-card-refill__badge<?= $refill_info['has_timer'] ? ' crm-card-refill__badge--timer' : '' ?>" id="userRefillBadge">
+    <?= $refill_info['is_ready'] ? 'Ready' : ($refill_info['has_timer'] ? '<span class="crm-timer-pulse"></span> Dimasak' : 'Habis') ?>
+  </span>
 </article>
 
 <!-- 2b. Bento Card Notifikasi Promosi Pribadi Member -->
@@ -374,16 +327,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Live Real-Time Countdown Timer Refill Nasi (Ticking Second-by-Second)
+  // Live Real-Time Countdown Timer Refill Nasi (Tersedia dalam: hh:mm:ss)
   (function () {
     var card = document.getElementById('userRefillCard');
     if (!card) return;
 
     var targetTs = parseInt(card.getAttribute('data-target-ts'), 10) || 0;
-    var timerBox = document.getElementById('userTimerBox');
-    var cdHours = document.getElementById('userCdHours');
-    var cdMinutes = document.getElementById('userCdMinutes');
-    var cdSeconds = document.getElementById('userCdSeconds');
+    var timerInline = document.getElementById('userRefillTimerInline');
+    var cdInline = document.getElementById('userRefillCdInline');
     var subText = document.getElementById('userRefillSub');
     var badge = document.getElementById('userRefillBadge');
 
@@ -400,9 +351,8 @@ document.addEventListener('DOMContentLoaded', function () {
       var remaining = targetTs - now;
 
       if (remaining <= 0) {
-        if (cdHours) cdHours.textContent = '00';
-        if (cdMinutes) cdMinutes.textContent = '00';
-        if (cdSeconds) cdSeconds.textContent = '00';
+        if (cdInline) cdInline.textContent = '00:00:00';
+        if (timerInline) timerInline.style.display = 'none';
 
         if (window.triggerRefillReadyAlarm) {
           window.triggerRefillReadyAlarm();
@@ -415,13 +365,6 @@ document.addEventListener('DOMContentLoaded', function () {
             badge.className = 'crm-card-refill__badge';
             badge.textContent = 'Ready';
           }
-          if (timerBox) {
-            timerBox.style.opacity = '0';
-            timerBox.style.transform = 'scale(0.95)';
-            setTimeout(function () {
-              timerBox.style.display = 'none';
-            }, 350);
-          }
         }
 
         // Sinkronisasi status di database via API
@@ -433,9 +376,9 @@ document.addEventListener('DOMContentLoaded', function () {
       var m = Math.floor((remaining % 3600) / 60);
       var s = remaining % 60;
 
-      if (cdHours) cdHours.textContent = pad(h);
-      if (cdMinutes) cdMinutes.textContent = pad(m);
-      if (cdSeconds) cdSeconds.textContent = pad(s);
+      if (cdInline) {
+        cdInline.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+      }
 
       setTimeout(tick, 1000);
     }
