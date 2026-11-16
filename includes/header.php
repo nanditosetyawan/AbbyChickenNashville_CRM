@@ -64,6 +64,7 @@ $flash = ambil_flash();
 <link rel="stylesheet" href="<?= e(base_url('assets/css/member_mobile.css')) ?>?v=<?= filemtime(__DIR__ . '/../assets/css/member_mobile.css') ?>">
 <?php endif; ?>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231A535C'/><path d='M9 22c0-7 3.5-12 7-12s7 5 7 12' stroke='%23FF6B35' stroke-width='2.5' fill='none' stroke-linecap='round'/></svg>">
+<script>window.BASE_URL = '<?= e(rtrim(base_url(''), '/') . '/') ?>';</script>
 </head>
 <?php if ($is_member): ?>
 <body class="crm-member-body">
