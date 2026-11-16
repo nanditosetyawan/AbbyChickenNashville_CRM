@@ -24,9 +24,9 @@ $member_data = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_m)) ?: [
 ];
 mysqli_stmt_close($stmt_m);
 
-/* 1. Status Refill Nasi dari database */
-$status_refill   = get_setting('refill_nasi', 'ready');
-$is_refill_ready = ($status_refill === 'ready' || $status_refill === 'tersedia');
+/* 1. Status Refill Nasi dan Data Timer dari database */
+$refill_info     = get_refill_nasi_info();
+$is_refill_ready = $refill_info['is_ready'];
 
 /* 2. Menu Tidak Tersedia & Total Menu */
 $q_menu = mysqli_query($conn, "SELECT
@@ -83,21 +83,74 @@ require_once __DIR__ . '/../../includes/header.php';
 </article>
 
 <!-- 2. Bento Card Status Refill Nasi (Bagian 5 Card Tipe B & E) -->
-<article class="crm-card-refill <?= $is_refill_ready ? 'is-ready' : 'is-habis' ?>">
-  <div class="crm-card-refill__left">
-    <div class="crm-card-refill__icon" aria-hidden="true">
-      <?= icon('rice', 28) ?>
+<article class="crm-card-refill <?= $refill_info['is_ready'] ? 'is-ready' : 'is-habis' ?><?= $refill_info['has_timer'] ? ' has-timer' : '' ?>"
+         id="userRefillCard"
+         data-status="<?= e($refill_info['status']) ?>"
+         data-target-ts="<?= (int) $refill_info['timer_ts'] ?>">
+  <div class="crm-card-refill__top">
+    <div class="crm-card-refill__left">
+      <div class="crm-card-refill__icon" aria-hidden="true">
+        <?= icon('rice', 28) ?>
+      </div>
+      <div>
+        <h3 class="crm-card-refill__title">Refill Nasi</h3>
+        <p class="crm-card-refill__sub" id="userRefillSub">
+          <?php if ($refill_info['is_ready']): ?>
+            Bebas tambah sepuasnya untuk dine-in
+          <?php elseif ($refill_info['has_timer']): ?>
+            Sedang dimasak ulang di dapur
+          <?php else: ?>
+            Sedang disiapkan ulang di dapur
+          <?php endif; ?>
+        </p>
+      </div>
     </div>
-    <div>
-      <h3 class="crm-card-refill__title">Refill Nasi</h3>
-      <p class="crm-card-refill__sub">
-        <?= $is_refill_ready ? 'Bebas tambah sepuasnya untuk dine-in' : 'Sedang disiapkan ulang di dapur' ?>
-      </p>
+    <span class="crm-card-refill__badge<?= $refill_info['has_timer'] ? ' crm-card-refill__badge--timer' : '' ?>" id="userRefillBadge">
+      <?php if ($refill_info['is_ready']): ?>
+        Ready
+      <?php elseif ($refill_info['has_timer']): ?>
+        <span class="crm-timer-pulse"></span> Dimasak
+      <?php else: ?>
+        Habis
+      <?php endif; ?>
+    </span>
+  </div>
+
+  <!-- Box Timer Restok Otomatis (Tampil saat tidak restok & timer aktif) -->
+  <div class="crm-refill-timer-box" id="userTimerBox" style="<?= $refill_info['has_timer'] ? '' : 'display:none;' ?>">
+    <div class="crm-refill-timer-box__header">
+      <div class="crm-refill-timer-box__label">
+        <svg class="crm-timer-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Tersedia Kembali Dalam:</span>
+      </div>
+      <span class="crm-refill-timer-box__target" id="userTimerTarget">
+        <?= !empty($refill_info['timer_ts']) ? date('H:i', $refill_info['timer_ts']) . ' WIB' : '' ?>
+      </span>
+    </div>
+
+    <div class="crm-refill-timer-digits" id="userRefillCountdown">
+      <div class="crm-timer-unit-group">
+        <span class="crm-timer-val" id="userCdHours">00</span>
+        <span class="crm-timer-lbl">JAM</span>
+      </div>
+      <span class="crm-timer-sep">:</span>
+      <div class="crm-timer-unit-group">
+        <span class="crm-timer-val" id="userCdMinutes">00</span>
+        <span class="crm-timer-lbl">MNT</span>
+      </div>
+      <span class="crm-timer-sep">:</span>
+      <div class="crm-timer-unit-group">
+        <span class="crm-timer-val" id="userCdSeconds">00</span>
+        <span class="crm-timer-lbl">DTK</span>
+      </div>
+    </div>
+
+    <div class="crm-refill-timer-footer">
+      <span class="crm-refill-timer-note">
+        Estimasi otomatis restok &middot; Nasi hangat pulen siap disajikan lagi
+      </span>
     </div>
   </div>
-  <span class="crm-card-refill__badge">
-    <?= $is_refill_ready ? 'Ready' : 'Habis' ?>
-  </span>
 </article>
 
 <!-- 2b. Bento Card Notifikasi Promosi Pribadi Member -->
@@ -320,6 +373,71 @@ document.addEventListener('DOMContentLoaded', function () {
       }).join('');
     }
   }
+
+  // Live Real-Time Countdown Timer Refill Nasi (Ticking Second-by-Second)
+  (function () {
+    var card = document.getElementById('userRefillCard');
+    if (!card) return;
+
+    var targetTs = parseInt(card.getAttribute('data-target-ts'), 10) || 0;
+    var timerBox = document.getElementById('userTimerBox');
+    var cdHours = document.getElementById('userCdHours');
+    var cdMinutes = document.getElementById('userCdMinutes');
+    var cdSeconds = document.getElementById('userCdSeconds');
+    var subText = document.getElementById('userRefillSub');
+    var badge = document.getElementById('userRefillBadge');
+
+    if (targetTs <= 0 || card.classList.contains('is-ready')) {
+      return;
+    }
+
+    function pad(n) {
+      return n < 10 ? '0' + n : String(n);
+    }
+
+    function tick() {
+      var now = Math.floor(Date.now() / 1000);
+      var remaining = targetTs - now;
+
+      if (remaining <= 0) {
+        if (cdHours) cdHours.textContent = '00';
+        if (cdMinutes) cdMinutes.textContent = '00';
+        if (cdSeconds) cdSeconds.textContent = '00';
+
+        // Otomatis transisi ke Ready dengan animasi halus
+        card.classList.remove('is-habis', 'has-timer');
+        card.classList.add('is-ready');
+        if (subText) subText.textContent = 'Bebas tambah sepuasnya untuk dine-in';
+        if (badge) {
+          badge.className = 'crm-card-refill__badge';
+          badge.textContent = 'Ready';
+        }
+        if (timerBox) {
+          timerBox.style.opacity = '0';
+          timerBox.style.transform = 'scale(0.95)';
+          setTimeout(function () {
+            timerBox.style.display = 'none';
+          }, 350);
+        }
+
+        // Sinkronisasi status di database via API
+        fetch('<?= e(base_url('api/get_refill_status.php')) ?>').catch(function () {});
+        return;
+      }
+
+      var h = Math.floor(remaining / 3600);
+      var m = Math.floor((remaining % 3600) / 60);
+      var s = remaining % 60;
+
+      if (cdHours) cdHours.textContent = pad(h);
+      if (cdMinutes) cdMinutes.textContent = pad(m);
+      if (cdSeconds) cdSeconds.textContent = pad(s);
+
+      setTimeout(tick, 1000);
+    }
+
+    tick();
+  })();
 });
 </script>
 

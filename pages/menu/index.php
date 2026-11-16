@@ -6,7 +6,7 @@
 session_start();
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../includes/auth_check.php';
-cek_akses(['Admin']);
+cek_akses(['Admin', 'Kasir']);
 
 $cari     = trim($_GET['q'] ?? '');
 $kategori = trim($_GET['kategori'] ?? '');
@@ -45,13 +45,13 @@ $ringkas = mysqli_fetch_assoc(mysqli_query($conn, "SELECT
     SUM(status_ketersediaan = 'tidak tersedia') AS habis,
     COUNT(*) AS total FROM menu"));
 
-$status_refill = get_setting('refill_nasi', 'ready');
-$is_refill_on  = ($status_refill === 'ready' || $status_refill === 'tersedia');
+$refill_card_info = get_refill_nasi_info();
+$role_pegawai     = $_SESSION['role'] ?? '';
 
 $page_title    = 'Stok & menu';
 $page_subtitle = 'Ubah ketersediaan menu secara langsung. Perubahan tersimpan tanpa memuat ulang halaman.';
 $active_menu   = 'menu';
-$page_actions  = '<a class="btn btn--primary" href="' . e(base_url('pages/menu/tambah.php')) . '">' . icon('plus', 16) . ' Tambah menu</a>';
+$page_actions  = ($role_pegawai === 'Admin') ? '<a class="btn btn--primary" href="' . e(base_url('pages/menu/tambah.php')) . '">' . icon('plus', 16) . ' Tambah menu</a>' : '';
 
 require_once __DIR__ . '/../../includes/header.php';
 ?>
@@ -72,23 +72,7 @@ require_once __DIR__ . '/../../includes/header.php';
     <p class="kpi__value"><?= (int) $ringkas['habis'] ?></p>
     <p class="kpi__meta">Ditandai habis pada katalog member</p>
   </article>
-  <article class="kpi kpi--refill-card">
-    <div class="kpi__refill-inner">
-      <div class="kpi__refill-icon" aria-hidden="true">
-        <?= icon('rice', 28) ?>
-      </div>
-      <div class="kpi__refill-content">
-        <p class="kpi__refill-title">Refill Nasi</p>
-        <div class="kpi__refill-toggle">
-          <label class="switch switch--refill switch--orange" for="toggleRefill">
-            <input type="checkbox" id="toggleRefill" class="js-toggle-refill" <?= $is_refill_on ? 'checked' : '' ?> data-api="<?= e(base_url('api/update_refill.php')) ?>">
-            <span class="switch__track"></span>
-            <span class="switch__label" id="refillLabel"><?= $is_refill_on ? 'Ready' : 'Habis' ?></span>
-          </label>
-        </div>
-      </div>
-    </div>
-  </article>
+  <?php require __DIR__ . '/../../includes/refill_card.php'; ?>
 </section>
 
 <article class="card">
@@ -158,16 +142,20 @@ require_once __DIR__ . '/../../includes/header.php';
               </td>
               <td class="muted nowrap" data-updated="<?= (int) $m['menu_id'] ?>"><?= e(waktu_lalu($m['updated_at'])) ?></td>
               <td class="col-actions">
-                <span class="btn-group">
-                  <a class="btn btn--ghost btn--sm" href="<?= e(base_url('pages/menu/edit.php?id=' . (int) $m['menu_id'])) ?>"><?= icon('edit', 15) ?> Edit</a>
-                  <form class="inline-form" method="post" action="<?= e(base_url('pages/menu/proses.php')) ?>"
-                        data-confirm="Hapus menu <?= e($m['name']) ?>? Menu yang pernah dipesan tidak bisa dihapus.">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="action" value="hapus">
-                    <input type="hidden" name="menu_id" value="<?= (int) $m['menu_id'] ?>">
-                    <button class="btn btn--danger btn--sm" type="submit"><?= icon('trash', 15) ?> Hapus</button>
-                  </form>
-                </span>
+                <?php if ($role_pegawai === 'Admin'): ?>
+                  <span class="btn-group">
+                    <a class="btn btn--ghost btn--sm" href="<?= e(base_url('pages/menu/edit.php?id=' . (int) $m['menu_id'])) ?>"><?= icon('edit', 15) ?> Edit</a>
+                    <form class="inline-form" method="post" action="<?= e(base_url('pages/menu/proses.php')) ?>"
+                          data-confirm="Hapus menu <?= e($m['name']) ?>? Menu yang pernah dipesan tidak bisa dihapus.">
+                      <?= csrf_field() ?>
+                      <input type="hidden" name="action" value="hapus">
+                      <input type="hidden" name="menu_id" value="<?= (int) $m['menu_id'] ?>">
+                      <button class="btn btn--danger btn--sm" type="submit"><?= icon('trash', 15) ?> Hapus</button>
+                    </form>
+                  </span>
+                <?php else: ?>
+                  <small class="muted">Khusus Admin</small>
+                <?php endif; ?>
               </td>
             </tr>
           <?php endwhile; ?>
@@ -178,6 +166,7 @@ require_once __DIR__ . '/../../includes/header.php';
 </article>
 
 <input type="hidden" id="csrfToken" value="<?= e(csrf_token()) ?>" data-api="<?= e(base_url('api/update_status.php')) ?>">
+<script src="<?= e(base_url('assets/js/refill_control.js')) ?>"></script>
 
 <?php
 $page_script = 'assets/js/menu.js';

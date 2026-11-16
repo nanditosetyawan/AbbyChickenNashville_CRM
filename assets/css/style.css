@@ -1071,21 +1071,23 @@ img { max-width: 100%; display: block; }
   background: #FFF4ED;
   border: 1px solid #FFD9C6;
   display: flex;
-  align-items: center;
-  padding: 18px 20px;
+  flex-direction: column;
+  padding: 16px 18px;
   border-radius: var(--radius-card);
+  transition: all 0.25s ease;
+  grid-column: span 1;
 }
 
 .kpi__refill-inner {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 14px;
   width: 100%;
 }
 
 .kpi__refill-icon {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
   background: rgba(255, 107, 53, 0.15);
   color: var(--orange);
@@ -1098,9 +1100,17 @@ img { max-width: 100%; display: block; }
 .kpi__refill-content {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   flex: 1;
   min-width: 0;
+}
+
+.kpi__refill-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
 }
 
 .kpi__refill-title {
@@ -1111,9 +1121,145 @@ img { max-width: 100%; display: block; }
   line-height: 1.2;
 }
 
+.kpi__refill-desc {
+  font-size: 11.5px;
+  color: #9C4D26;
+  margin: 2px 0 0;
+  line-height: 1.35;
+}
+
 .kpi__refill-toggle {
   display: flex;
   align-items: center;
+  flex: none;
+}
+
+/* Panel Kontrol Timer (Admin/Kasir) */
+.refill-timer-panel {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #FFD0B8;
+  width: 100%;
+}
+
+.refill-timer-prompt {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #8C320C;
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.refill-timer-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.btn-chip {
+  padding: 4px 10px;
+  border-radius: 16px;
+  border: 1px solid #FFC5A8;
+  background: #FFF8F5;
+  color: #D44A17;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-chip:hover {
+  background: #FF7A45;
+  border-color: #FF7A45;
+  color: #FFFFFF;
+}
+
+.btn-chip--primary {
+  background: #FF7A45;
+  border-color: #FF7A45;
+  color: #FFFFFF;
+}
+
+.btn-chip--primary:hover {
+  background: #E55A2B;
+}
+
+.refill-timer-custom-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.refill-timer-unit-lbl {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #8C320C;
+}
+
+.refill-timer-active-box {
+  background: #FFFFFF;
+  border: 1px solid #FFC5A8;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.refill-timer-active-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.refill-timer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #D44A17;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.timer-dot-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #FF6B35;
+  animation: timerPulse 1.4s infinite ease-in-out;
+}
+
+@keyframes timerPulse {
+  0% { transform: scale(0.85); opacity: 0.5; }
+  50% { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(0.85); opacity: 0.5; }
+}
+
+.refill-timer-countdown-text {
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #C85A32;
+  letter-spacing: -0.01em;
+}
+
+.refill-timer-target-time {
+  font-size: 11.5px;
+  color: #8A563D;
+}
+
+.refill-timer-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* User Refill Card States */

@@ -272,7 +272,7 @@ CREATE TABLE `pengaturan` (
 
 LOCK TABLES `pengaturan` WRITE;
 /*!40000 ALTER TABLE `pengaturan` DISABLE KEYS */;
-INSERT INTO `pengaturan` VALUES ('refill_nasi','habis','2026-11-10 15:28:21');
+INSERT INTO `pengaturan` VALUES ('refill_nasi','ready','2026-11-16 19:30:00'),('refill_nasi_timer','','2026-11-16 19:30:00');
 /*!40000 ALTER TABLE `pengaturan` ENABLE KEYS */;
 UNLOCK TABLES;
 

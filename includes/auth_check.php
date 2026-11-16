@@ -71,7 +71,7 @@ function menu_per_role($role)
         'orders'     => ['label' => 'Pesan Online',     'url' => 'pages/orders/index.php',     'icon' => 'order',     'roles' => ['Admin', 'Kasir']],
         'voucher'    => ['label' => 'Ulasan & Voucher', 'url' => 'pages/voucher/index.php',    'icon' => 'voucher',   'roles' => ['Admin', 'Kasir']],
         'complaints' => ['label' => 'Keluhan',          'url' => 'pages/complaints/index.php', 'icon' => 'complaint', 'roles' => ['Admin', 'PIC Keluhan']],
-        'menu'          => ['label' => 'Stok & Menu',        'url' => 'pages/menu/index.php',       'icon' => 'menu',      'roles' => ['Admin']],
+        'menu'          => ['label' => 'Stok & Menu',        'url' => 'pages/menu/index.php',       'icon' => 'menu',      'roles' => ['Admin', 'Kasir']],
         'promo'         => ['label' => 'Promo & Notifikasi', 'url' => 'pages/promo/index.php',      'icon' => 'bell',      'roles' => ['Admin']],
         'control_promo' => ['label' => 'Control Promosi',    'url' => 'pages/promo/control.php',    'icon' => 'send',      'roles' => ['Admin']],
         'pegawai'       => ['label' => 'Pegawai',            'url' => 'pages/pegawai/index.php',    'icon' => 'pegawai',   'roles' => ['Admin']],

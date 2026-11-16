@@ -265,6 +265,50 @@ function set_setting($key, $val)
 }
 
 /**
+ * Ambil informasi lengkap status dan timer refill nasi.
+ * Jika status sedang 'habis' dan waktu timer telah terlewati, status otomatis diubah ke 'ready' (auto-restock).
+ *
+ * @return array{
+ *   status: string,
+ *   is_ready: bool,
+ *   timer_end: string,
+ *   timer_ts: int,
+ *   seconds_left: int,
+ *   has_timer: bool
+ * }
+ */
+function get_refill_nasi_info()
+{
+    global $conn;
+    $status    = get_setting('refill_nasi', 'ready');
+    $timer_end = get_setting('refill_nasi_timer', '');
+    $now       = time();
+    $timer_ts  = (!empty($timer_end)) ? strtotime($timer_end) : 0;
+
+    // Otomatis restok jika sedang habis dan waktu timer sudah lewat
+    if (($status === 'habis' || $status === 'tidak tersedia') && $timer_ts > 0 && $now >= $timer_ts) {
+        $status    = 'ready';
+        $timer_end = '';
+        $timer_ts  = 0;
+        set_setting('refill_nasi', 'ready');
+        set_setting('refill_nasi_timer', '');
+    }
+
+    $is_ready     = ($status === 'ready' || $status === 'tersedia');
+    $seconds_left = ($timer_ts > $now && !$is_ready) ? ($timer_ts - $now) : 0;
+    $has_timer    = ($seconds_left > 0 && !$is_ready);
+
+    return [
+        'status'       => $status,
+        'is_ready'     => $is_ready,
+        'timer_end'    => $timer_end,
+        'timer_ts'     => $timer_ts,
+        'seconds_left' => $seconds_left,
+        'has_timer'    => $has_timer,
+    ];
+}
+
+/**
  * Ambil daftar notifikasi promo pribadi milik member beserta detail voucher (jika ada).
  *
  * @return array{items: array, unread: int}

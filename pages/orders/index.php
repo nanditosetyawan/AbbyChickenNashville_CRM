@@ -92,6 +92,7 @@ require_once __DIR__ . '/../../includes/header.php';
     <p class="kpi__value"><?= (int) $hitung['selesai'] ?></p>
     <p class="kpi__meta">Dari <?= (int) $hitung['total'] ?> pesanan tercatat</p>
   </article>
+  <?php require __DIR__ . '/../../includes/refill_card.php'; ?>
 </section>
 
 <nav class="tabs" aria-label="Filter status pesanan">
@@ -206,5 +207,8 @@ require_once __DIR__ . '/../../includes/header.php';
     <?php endif; ?>
   </div>
 </article>
+
+<input type="hidden" id="csrfToken" value="<?= e(csrf_token()) ?>">
+<script src="<?= e(base_url('assets/js/refill_control.js')) ?>"></script>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>

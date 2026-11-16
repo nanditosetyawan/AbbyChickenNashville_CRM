@@ -48,34 +48,4 @@
       });
     });
   });
-
-  const refillToggle = document.querySelector('.js-toggle-refill');
-  if (refillToggle) {
-    refillToggle.addEventListener('change', function () {
-      const label = document.getElementById('refillLabel');
-      const apiUrl = refillToggle.dataset.api;
-      const nilai = refillToggle.checked ? 'ready' : 'habis';
-
-      refillToggle.disabled = true;
-
-      window.postJSON(apiUrl, {
-        csrf_token: token,
-        status: nilai
-      }).then(function (res) {
-        if (!res.success) {
-          throw new Error(res.message || 'Gagal mengubah status refill nasi.');
-        }
-        if (label) label.textContent = refillToggle.checked ? 'Ready' : 'Habis';
-        pesan(res.message);
-      }).catch(function (err) {
-        refillToggle.checked = !refillToggle.checked;
-        if (label) label.textContent = refillToggle.checked ? 'Ready' : 'Habis';
-        if (window.tampilkanToast) {
-          window.tampilkanToast(err.message, 'error');
-        }
-      }).finally(function () {
-        refillToggle.disabled = false;
-      });
-    });
-  }
 })();

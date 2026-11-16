@@ -178,6 +178,7 @@ mysqli_stmt_close($q_riw);
 
 $tab_aktif = $_GET['tab'] ?? 'pesan';
 
+$refill_info   = get_refill_nasi_info();
 $page_title    = 'Pesan';
 $page_subtitle = 'Pesan menu online langsung ke antrian kasir';
 $active_menu   = 'pesan';
@@ -199,6 +200,30 @@ require_once __DIR__ . '/../../includes/header.php';
     <?php endif; ?>
   </a>
 </nav>
+
+<!-- Banner Status Refill Nasi (Real-Time) -->
+<div class="crm-refill-banner <?= $refill_info['is_ready'] ? 'is-ready' : ($refill_info['has_timer'] ? 'has-timer' : 'is-habis') ?>"
+     id="userPesanRefillBanner"
+     data-target-ts="<?= (int) $refill_info['timer_ts'] ?>">
+  <div class="crm-refill-banner__left">
+    <?= icon('rice', 18) ?>
+    <span>
+      <strong>Refill Nasi:</strong>
+      <span id="pesanRefillText">
+        <?php if ($refill_info['is_ready']): ?>
+          Ready sepuasnya untuk dine-in
+        <?php elseif ($refill_info['has_timer']): ?>
+          Sedang dimasak &middot; Siap dalam <strong id="pesanRefillCd" style="font-variant-numeric:tabular-nums; color:var(--crm-terracotta);">--:--:--</strong>
+        <?php else: ?>
+          Sedang disiapkan di dapur
+        <?php endif; ?>
+      </span>
+    </span>
+  </div>
+  <span class="crm-refill-banner__badge" id="pesanRefillBadge">
+    <?= $refill_info['is_ready'] ? 'Ready' : ($refill_info['has_timer'] ? 'Dimasak' : 'Habis') ?>
+  </span>
+</div>
 
 <?php if (!empty($error['umum'])): ?>
   <div class="crm-mobile-flash crm-mobile-flash--error"><p><?= e($error['umum']) ?></p></div>
@@ -384,6 +409,47 @@ require_once __DIR__ . '/../../includes/header.php';
     window.__voucherMap = <?= json_encode($voucher_map, JSON_UNESCAPED_UNICODE) ?>;
   </script>
 <?php endif; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var banner = document.getElementById('userPesanRefillBanner');
+  if (!banner) return;
+
+  var targetTs = parseInt(banner.getAttribute('data-target-ts'), 10) || 0;
+  var cdEl = document.getElementById('pesanRefillCd');
+  var textEl = document.getElementById('pesanRefillText');
+  var badgeEl = document.getElementById('pesanRefillBadge');
+
+  if (targetTs <= 0 || banner.classList.contains('is-ready')) return;
+
+  function pad(n) { return n < 10 ? '0' + n : String(n); }
+
+  function tick() {
+    var now = Math.floor(Date.now() / 1000);
+    var remaining = targetTs - now;
+
+    if (remaining <= 0) {
+      banner.className = 'crm-refill-banner is-ready';
+      if (textEl) textEl.textContent = 'Ready sepuasnya untuk dine-in';
+      if (badgeEl) badgeEl.textContent = 'Ready';
+      fetch('<?= e(base_url('api/get_refill_status.php')) ?>').catch(function () {});
+      return;
+    }
+
+    var h = Math.floor(remaining / 3600);
+    var m = Math.floor((remaining % 3600) / 60);
+    var s = remaining % 60;
+
+    if (cdEl) {
+      cdEl.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+    }
+
+    setTimeout(tick, 1000);
+  }
+
+  tick();
+});
+</script>
 
 <?php
 $page_script = 'assets/js/orders.js';
