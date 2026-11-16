@@ -385,6 +385,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
 <script src="<?= e(base_url('assets/js/main.js')) ?>" defer></script>
+<script src="<?= e(base_url('assets/js/refill_user_watcher.js')) ?>" defer></script>
 <?php if (!empty($page_script)): ?>
 <script src="<?= e(base_url($page_script)) ?>" defer></script>
 <?php endif; ?>
@@ -404,6 +405,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
 <script src="<?= e(base_url('assets/js/main.js')) ?>" defer></script>
+<script src="<?= e(base_url('assets/js/refill_user_watcher.js')) ?>" defer></script>
 <?php if (!empty($page_script)): ?>
 <script src="<?= e(base_url($page_script)) ?>" defer></script>
 <?php endif; ?>

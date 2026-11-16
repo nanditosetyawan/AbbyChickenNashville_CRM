@@ -404,20 +404,24 @@ document.addEventListener('DOMContentLoaded', function () {
         if (cdMinutes) cdMinutes.textContent = '00';
         if (cdSeconds) cdSeconds.textContent = '00';
 
-        // Otomatis transisi ke Ready dengan animasi halus
-        card.classList.remove('is-habis', 'has-timer');
-        card.classList.add('is-ready');
-        if (subText) subText.textContent = 'Bebas tambah sepuasnya untuk dine-in';
-        if (badge) {
-          badge.className = 'crm-card-refill__badge';
-          badge.textContent = 'Ready';
-        }
-        if (timerBox) {
-          timerBox.style.opacity = '0';
-          timerBox.style.transform = 'scale(0.95)';
-          setTimeout(function () {
-            timerBox.style.display = 'none';
-          }, 350);
+        if (window.triggerRefillReadyAlarm) {
+          window.triggerRefillReadyAlarm();
+        } else {
+          // Otomatis transisi ke Ready dengan animasi halus
+          card.classList.remove('is-habis', 'has-timer');
+          card.classList.add('is-ready');
+          if (subText) subText.textContent = 'Bebas tambah sepuasnya untuk dine-in';
+          if (badge) {
+            badge.className = 'crm-card-refill__badge';
+            badge.textContent = 'Ready';
+          }
+          if (timerBox) {
+            timerBox.style.opacity = '0';
+            timerBox.style.transform = 'scale(0.95)';
+            setTimeout(function () {
+              timerBox.style.display = 'none';
+            }, 350);
+          }
         }
 
         // Sinkronisasi status di database via API

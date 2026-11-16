@@ -429,9 +429,13 @@ document.addEventListener('DOMContentLoaded', function () {
     var remaining = targetTs - now;
 
     if (remaining <= 0) {
-      banner.className = 'crm-refill-banner is-ready';
-      if (textEl) textEl.textContent = 'Ready sepuasnya untuk dine-in';
-      if (badgeEl) badgeEl.textContent = 'Ready';
+      if (window.triggerRefillReadyAlarm) {
+        window.triggerRefillReadyAlarm();
+      } else {
+        banner.className = 'crm-refill-banner is-ready';
+        if (textEl) textEl.textContent = 'Ready sepuasnya untuk dine-in';
+        if (badgeEl) badgeEl.textContent = 'Ready';
+      }
       fetch('<?= e(base_url('api/get_refill_status.php')) ?>').catch(function () {});
       return;
     }

@@ -646,6 +646,133 @@ body.crm-member-body {
   color: var(--crm-sage);
 }
 
+/* =====================================================================
+   Refill Nasi Ready - Pop-up Notifikasi & Alarm Suara Kencang
+   ===================================================================== */
+.crm-refill-alert-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 32, 21, 0.72);
+  backdrop-filter: blur(4px);
+  z-index: 99998;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.crm-refill-alert-backdrop.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.crm-refill-alert-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -46%) scale(0.92);
+  width: min(92vw, 400px);
+  background: #FAF9F5;
+  border: 2.5px solid var(--crm-green-accent, #6CC24A);
+  border-radius: 24px;
+  padding: 26px 20px 22px;
+  box-shadow: 0 16px 40px rgba(35, 51, 29, 0.4);
+  z-index: 99999;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.crm-refill-alert-modal.is-visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: auto;
+}
+
+.crm-refill-alert-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #E6F7DF 0%, #D1F0C4 100%);
+  border: 3px solid #6CC24A;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 16px;
+  color: #23331D;
+  font-size: 34px;
+  box-shadow: 0 6px 20px rgba(108, 194, 74, 0.4);
+  animation: crmRefillBellRinging 0.8s infinite ease-in-out;
+}
+
+@keyframes crmRefillBellRinging {
+  0% { transform: rotate(0deg) scale(1); }
+  15% { transform: rotate(14deg) scale(1.1); }
+  30% { transform: rotate(-14deg) scale(1.1); }
+  45% { transform: rotate(10deg) scale(1.05); }
+  60% { transform: rotate(-8deg) scale(1.05); }
+  75% { transform: rotate(4deg) scale(1.02); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+.crm-refill-alert-title {
+  font-size: 21px;
+  font-weight: 800;
+  color: #23331D;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.crm-refill-alert-desc {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #3A4633;
+  margin: 0 0 20px;
+}
+
+.crm-refill-alert-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.crm-refill-alert-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 20px;
+  background: #6CC24A;
+  color: #182015;
+  border: none;
+  border-radius: 999px;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(108, 194, 74, 0.35);
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.crm-refill-alert-btn-primary:hover {
+  background: #5eb03e;
+}
+
+.crm-refill-alert-btn-secondary {
+  background: transparent;
+  color: #6E7865;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.crm-refill-alert-btn-secondary:hover {
+  color: #23331D;
+}
+
 /* 4. Filter Bar / Deck Selector (#EAE9E0) */
 .crm-filter-bar {
   background-color: var(--crm-sand);
