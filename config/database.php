@@ -20,7 +20,7 @@ if ($is_local) {
 } else {
     // 2. Kredensial Hosting InfinityFree
     // CATATAN: Ganti DB_HOST dengan "MySQL Hostname" dan DB_NAME dari vPanel InfinityFree Anda
-    define('DB_HOST', 'sql308.infinityfree.com'); // Sesuaikan dengan MySQL Hostname di Control Panel InfinityFree
+    define('DB_HOST', 'sql209.infinityfree.com'); // Sesuaikan dengan MySQL Hostname di Control Panel InfinityFree
     define('DB_USER', 'if0_43411321');
     define('DB_PASS', 'Pg6TqhCOOhgnt');
     define('DB_NAME', 'if0_43411321_abbychicken_crm'); // Nama DB di InfinityFree selalu diawali if0_43411321_
