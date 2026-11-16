@@ -1533,45 +1533,22 @@ img { max-width: 100%; display: block; }
 .switch input:disabled + .switch__track { opacity: 0.6; }
 
 /* =====================================================================
-   Card Refill Nasi (Admin & User)
+   Card Refill Nasi (Admin & Kasir)
    ===================================================================== */
 
 .kpi--refill-card {
-  background: #FFF4ED;
+  background: #FFF5EE;
   border: 1px solid #FFD9C6;
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  padding: 16px 18px;
-  border-radius: var(--radius-card);
+  gap: 10px;
+  box-shadow: var(--shadow-card);
   transition: all 0.25s ease;
   grid-column: span 1;
-}
-
-.kpi__refill-inner {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  width: 100%;
-}
-
-.kpi__refill-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(255, 107, 53, 0.15);
-  color: var(--orange);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-}
-
-.kpi__refill-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .kpi__refill-header-row {
@@ -1582,19 +1559,45 @@ img { max-width: 100%; display: block; }
   width: 100%;
 }
 
+.kpi__refill-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.kpi__refill-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: rgba(255, 107, 53, 0.15);
+  color: var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.kpi__refill-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .kpi__refill-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-  color: #8C320C;
+  color: #7A2800;
   margin: 0;
   line-height: 1.2;
 }
 
 .kpi__refill-desc {
-  font-size: 11.5px;
+  font-size: 11px;
   color: #9C4D26;
-  margin: 2px 0 0;
-  line-height: 1.35;
+  margin: 1px 0 0;
+  line-height: 1.25;
 }
 
 .kpi__refill-toggle {
@@ -1605,97 +1608,44 @@ img { max-width: 100%; display: block; }
 
 /* Panel Kontrol Timer (Admin/Kasir) */
 .refill-timer-panel {
-  margin-top: 10px;
+  border-top: 1px dashed #FFCFB7;
   padding-top: 10px;
-  border-top: 1px dashed #FFD0B8;
   width: 100%;
+  box-sizing: border-box;
 }
 
-.refill-timer-prompt {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #8C320C;
-  margin: 0 0 6px;
+/* Box 1: Timer Aktif (Countdown Berjalan) */
+.refill-timer-active-box {
+  background: #FFFFFF;
+  border: 1px solid #FFD4C0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 2px 6px rgba(229, 90, 43, 0.05);
+  box-sizing: border-box;
+  width: 100%;
   display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.refill-timer-presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 8px;
-}
-
-.btn-chip {
-  padding: 4px 10px;
-  border-radius: 16px;
-  border: 1px solid #FFC5A8;
-  background: #FFF8F5;
-  color: #D44A17;
-  font-size: 11.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn-chip:hover {
-  background: #FF7A45;
-  border-color: #FF7A45;
-  color: #FFFFFF;
-}
-
-.btn-chip--primary {
-  background: #FF7A45;
-  border-color: #FF7A45;
-  color: #FFFFFF;
-}
-
-.btn-chip--primary:hover {
-  background: #E55A2B;
-}
-
-.refill-timer-custom-group {
-  display: inline-flex;
-  align-items: center;
+  flex-direction: column;
   gap: 6px;
 }
 
-.refill-timer-unit-lbl {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #8C320C;
-}
-
-.refill-timer-active-box {
-  background: #FFFFFF;
-  border: 1px solid #FFC5A8;
-  border-radius: 8px;
-  padding: 8px 12px;
+.refill-timer-active-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.refill-timer-active-info {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
 }
 
 .refill-timer-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 700;
+  gap: 4px;
+  font-size: 9.5px;
+  font-weight: 800;
   color: #D44A17;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .timer-dot-pulse {
@@ -1703,32 +1653,241 @@ img { max-width: 100%; display: block; }
   height: 6px;
   border-radius: 50%;
   background: #FF6B35;
+  box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7);
   animation: timerPulse 1.4s infinite ease-in-out;
+  flex: none;
 }
 
 @keyframes timerPulse {
-  0% { transform: scale(0.85); opacity: 0.5; }
-  50% { transform: scale(1.25); opacity: 1; }
-  100% { transform: scale(0.85); opacity: 0.5; }
-}
-
-.refill-timer-countdown-text {
-  font-size: 15px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  color: #C85A32;
-  letter-spacing: -0.01em;
+  0% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7); }
+  70% { transform: scale(1.15); box-shadow: 0 0 0 5px rgba(255, 107, 53, 0); }
+  100% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(255, 107, 53, 0); }
 }
 
 .refill-timer-target-time {
-  font-size: 11.5px;
+  font-size: 10px;
+  font-weight: 700;
   color: #8A563D;
+  white-space: nowrap;
 }
 
-.refill-timer-actions {
+.refill-timer-countdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 0 4px;
+}
+
+.refill-timer-countdown-text {
+  font-size: 20px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #B33D14;
+  letter-spacing: 1px;
+}
+
+.refill-timer-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.btn-refill-act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.btn-refill-act--cancel {
+  background: #FFF7F2;
+  border: 1px solid #FFD0B8;
+  color: #B33D14;
+}
+
+.btn-refill-act--cancel:hover {
+  background: #FFEBE0;
+  border-color: #FFBA99;
+}
+
+.btn-refill-act--edit {
+  background: #FF7A45;
+  border: 1px solid #FF7A45;
+  color: #FFFFFF;
+}
+
+.btn-refill-act--edit:hover {
+  background: #E55A2B;
+  border-color: #E55A2B;
+}
+
+/* Box 2: Setup Timer (Presets & Custom) */
+.refill-timer-setup-box {
+  background: #FFFFFF;
+  border: 1px solid #FFD4C0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 2px 6px rgba(229, 90, 43, 0.05);
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.refill-timer-setup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+}
+
+.refill-timer-prompt {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #7A2800;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+}
+
+.btn-refill-back {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #C85A32;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.btn-refill-back:hover {
+  color: #8C320C;
+}
+
+.refill-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 2px 0 4px;
+}
+
+.refill-presets-grid .btn-chip {
+  padding: 5px 2px;
+  border-radius: 6px;
+  border: 1px solid #FFD0B8;
+  background: #FFF9F5;
+  color: #C85A32;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.refill-presets-grid .btn-chip:hover {
+  background: #FF7A45;
+  border-color: #FF7A45;
+  color: #FFFFFF;
+}
+
+.refill-presets-grid .btn-chip--accent {
+  background: #FFF0E8;
+  border-color: #FFB894;
+  color: #B33D14;
+}
+
+.refill-presets-grid .btn-chip--accent:hover {
+  background: #FF7A45;
+  border-color: #FF7A45;
+  color: #FFFFFF;
+}
+
+.refill-custom-form {
+  width: 100%;
+  margin: 0;
+}
+
+.refill-custom-input-group {
   display: flex;
   align-items: center;
   gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.refill-input-wrapper {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.refill-input-number {
+  width: 100%;
+  height: 30px;
+  padding: 0 32px 0 8px;
+  border: 1px solid #FFD0B8;
+  border-radius: 6px;
+  background: #FFF9F5;
+  color: #333333;
+  font-size: 11.5px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.refill-input-number:focus {
+  border-color: #FF7A45;
+  background: #FFFFFF;
+}
+
+.refill-input-unit {
+  position: absolute;
+  right: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #8C320C;
+  pointer-events: none;
+}
+
+.btn-refill-submit {
+  height: 30px;
+  padding: 0 12px;
+  background: #FF7A45;
+  color: #FFFFFF;
+  font-size: 11.5px;
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: none;
+  transition: background 0.15s ease;
+}
+
+.btn-refill-submit:hover {
+  background: #E55A2B;
 }
 
 /* User Refill Card States */

@@ -37,7 +37,7 @@
     if (timerInterval) clearInterval(timerInterval);
 
     if (targetTimeEl && targetClock) {
-      targetTimeEl.textContent = '(' + targetClock + ')';
+      targetTimeEl.textContent = targetClock;
     }
 
     function tick() {
@@ -52,7 +52,7 @@
         // Auto-restock triggered!
         if (toggle) toggle.checked = true;
         if (label) label.textContent = 'Ready';
-        if (desc) desc.textContent = 'Stok nasi siap disajikan sepuasnya untuk dine-in.';
+        if (desc) desc.textContent = 'Stok siap disajikan.';
         if (timerPanel) timerPanel.style.display = 'none';
 
         if (window.tampilkanToast) {
@@ -99,12 +99,12 @@
 
         if (isReady) {
           if (label) label.textContent = 'Ready';
-          if (desc) desc.textContent = 'Stok nasi siap disajikan sepuasnya untuk dine-in.';
+          if (desc) desc.textContent = 'Stok siap disajikan.';
           if (timerPanel) timerPanel.style.display = 'none';
           if (timerInterval) clearInterval(timerInterval);
         } else {
           if (label) label.textContent = 'Habis';
-          if (desc) desc.textContent = 'Stok nasi ditandai habis pada portal member.';
+          if (desc) desc.textContent = 'Stok habis di member.';
           if (timerPanel) timerPanel.style.display = '';
           if (activeBox) activeBox.style.display = 'none';
           if (setupBox) setupBox.style.display = '';
@@ -142,8 +142,10 @@
 
         if (setupBox) setupBox.style.display = 'none';
         if (activeBox) activeBox.style.display = '';
+        var btnBack = document.getElementById('btnBackToActiveTimer');
+        if (btnBack) btnBack.style.display = 'none';
 
-        var targetClock = res.timer_end ? 'Pukul ' + res.timer_end.substring(11, 16) + ' WIB' : '';
+        var targetClock = res.timer_end ? res.timer_end.substring(11, 16) + ' WIB' : '';
         startCountdown(res.timer_ts, targetClock);
 
         if (window.tampilkanToast) {
@@ -186,9 +188,11 @@
 
         if (setupBox) setupBox.style.display = 'none';
         if (activeBox) activeBox.style.display = '';
+        var btnBack = document.getElementById('btnBackToActiveTimer');
+        if (btnBack) btnBack.style.display = 'none';
         customInput.value = '';
 
-        var targetClock = res.timer_end ? 'Pukul ' + res.timer_end.substring(11, 16) + ' WIB' : '';
+        var targetClock = res.timer_end ? res.timer_end.substring(11, 16) + ' WIB' : '';
         startCountdown(res.timer_ts, targetClock);
 
         if (window.tampilkanToast) {
@@ -223,6 +227,8 @@
 
         if (activeBox) activeBox.style.display = 'none';
         if (setupBox) setupBox.style.display = '';
+        var btnBack = document.getElementById('btnBackToActiveTimer');
+        if (btnBack) btnBack.style.display = 'none';
 
         if (window.tampilkanToast) {
           window.tampilkanToast('Timer otomatis restok dibatalkan. Status tetap Habis manual.', 'success');
@@ -237,11 +243,24 @@
     });
   }
 
-  // Change timer button handler
+  // Change timer button handler (switch between active view and setup view)
+  var btnBack = document.getElementById('btnBackToActiveTimer');
+
   if (btnChange) {
     btnChange.addEventListener('click', function () {
-      if (setupBox) {
-        setupBox.style.display = (setupBox.style.display === 'none') ? '' : 'none';
+      if (setupBox && activeBox) {
+        setupBox.style.display = '';
+        activeBox.style.display = 'none';
+        if (btnBack) btnBack.style.display = '';
+      }
+    });
+  }
+
+  if (btnBack) {
+    btnBack.addEventListener('click', function () {
+      if (setupBox && activeBox) {
+        setupBox.style.display = 'none';
+        activeBox.style.display = '';
       }
     });
   }
