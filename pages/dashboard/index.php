@@ -109,6 +109,30 @@ if (in_array($role, ['Admin', 'Pimpinan'], true)) {
     }
 }
 
+/* ------------------------------------------- Tier Loyalitas (Khusus Admin) */
+$top_members = [];
+$max_belanja_member = 1;
+if ($role === 'Admin') {
+    $q_loyalty = mysqli_query($conn, "SELECT m.member_id, m.name, m.email, m.no_telp, m.tgl_join, m.total_poin,
+            COUNT(p.pemesanan_id) AS total_transaksi,
+            COALESCE(SUM(p.jumlah_bayar), 0) AS total_belanja
+        FROM member m
+        JOIN pemesanan p ON p.member_id = m.member_id AND p.status_pesanan <> 'dibatalkan'
+        WHERE m.member_status = 'aktif'
+        GROUP BY m.member_id, m.name, m.email, m.no_telp, m.tgl_join, m.total_poin
+        HAVING total_belanja > 0
+        ORDER BY total_belanja DESC, total_transaksi DESC, m.total_poin DESC
+        LIMIT 5");
+    if ($q_loyalty) {
+        while ($row = mysqli_fetch_assoc($q_loyalty)) {
+            $top_members[] = $row;
+        }
+    }
+    if (!empty($top_members)) {
+        $max_belanja_member = max(1, (float) $top_members[0]['total_belanja']);
+    }
+}
+
 /* ------------------------------------------------- Aktivitas terbaru */
 $aktivitas = [];
 $q = mysqli_query($conn, "SELECT 'pesanan' AS jenis, p.pemesanan_id AS ref, p.waktu_pemesanan AS waktu,
@@ -283,6 +307,162 @@ require_once __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
       </div>
     </article>
+
+    <?php if ($role === 'Admin'): ?>
+      <article class="card piagam-card">
+        <div class="card__head piagam-card__head">
+          <div>
+            <div class="piagam-head-eyebrow">
+              <span class="piagam-badge-pill">PRESTASI BELANJA</span>
+              <span class="piagam-head-date">Akumulasi Belanja Tertinggi</span>
+            </div>
+            <h2 class="piagam-title">Tier Loyalitas &amp; Piagam Member</h2>
+            <p class="piagam-subtitle">Peringkat member teratas berdasarkan akumulasi rupiah belanja (Khusus Admin).</p>
+          </div>
+          <div class="card__head-actions">
+            <a class="link-quiet nowrap" href="<?= e(base_url('pages/membership/index.php')) ?>">Kelola member &rarr;</a>
+          </div>
+        </div>
+
+        <?php if (empty($top_members)): ?>
+          <div class="empty">
+            <div class="empty__icon"><?= icon('member', 20) ?></div>
+            <h3>Belum ada data belanja member</h3>
+            <p>Peringkat loyalitas akan otomatis terhitung setelah member melakukan transaksi valid.</p>
+          </div>
+        <?php else:
+          $hero_member = $top_members[0];
+          $runner_members = array_slice($top_members, 1);
+        ?>
+          <!-- Pedestal Hero Juara 1 -->
+          <div class="piagam-hero">
+            <div class="piagam-hero__ribbon-tag">JUARA 1 &middot; PIAGAM EMAS UTAMA</div>
+            <div class="piagam-hero__inner">
+              <div class="piagam-hero__medal">
+                <svg class="piagam-svg piagam-svg--gold" viewBox="0 0 54 58" fill="none" aria-hidden="true">
+                  <path d="M18 34L11 54L22 49L26 36" fill="#D97706"/>
+                  <path d="M36 34L43 54L32 49L28 36" fill="#B45309"/>
+                  <path d="M18 34L11 54L15 44Z" fill="#F59E0B" opacity="0.6"/>
+                  <path d="M12 24C10 18 13 11 20 8M34 8C41 11 44 18 42 24M11 29C13 36 18 40 27 41M43 29C41 36 36 40 27 41" stroke="#D97706" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="11" cy="18" r="2.2" fill="#F59E0B"/>
+                  <circle cx="43" cy="18" r="2.2" fill="#F59E0B"/>
+                  <circle cx="13" cy="27" r="2.2" fill="#F59E0B"/>
+                  <circle cx="41" cy="27" r="2.2" fill="#F59E0B"/>
+                  <circle cx="27" cy="24" r="17" fill="url(#goldGrad)" stroke="#B45309" stroke-width="1.8"/>
+                  <circle cx="27" cy="24" r="14.5" stroke="#FEF3C7" stroke-width="1.2" stroke-dasharray="2.5 1.5"/>
+                  <path d="M21 16L22.5 19.5L27 18L31.5 19.5L33 16L30.5 21H23.5L21 16Z" fill="#FFFBEB" stroke="#92400E" stroke-width="0.7"/>
+                  <circle cx="27" cy="17" r="1" fill="#DC2626"/>
+                  <text x="27" y="32" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="900" font-size="14" fill="#78350F">1</text>
+                  <defs>
+                    <linearGradient id="goldGrad" x1="12" y1="9" x2="42" y2="39" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#FDE68A"/>
+                      <stop offset="0.45" stop-color="#F59E0B"/>
+                      <stop offset="1" stop-color="#B45309"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+
+              <div class="piagam-hero__info">
+                <div class="piagam-hero__header-row">
+                  <div class="piagam-hero__member-name">
+                    <a href="<?= e(base_url('pages/membership/detail.php?id=' . (int) $hero_member['member_id'])) ?>"><?= e($hero_member['name']) ?></a>
+                    <span class="piagam-crown-pill" title="Tier Tertinggi">👑 Sultan VIP</span>
+                  </div>
+                  <div class="piagam-hero__spend-val">
+                    <small>Total Belanja</small>
+                    <strong><?= e(rupiah($hero_member['total_belanja'])) ?></strong>
+                  </div>
+                </div>
+                <div class="piagam-hero__meta-row">
+                  <span class="piagam-meta-item"><strong><?= (int) $hero_member['total_transaksi'] ?></strong> kali transaksi</span>
+                  <span class="piagam-meta-divider">&bull;</span>
+                  <span class="piagam-meta-item"><strong><?= number_format((int) $hero_member['total_poin'], 0, ',', '.') ?></strong> poin loyalitas</span>
+                  <span class="piagam-meta-divider">&bull;</span>
+                  <span class="piagam-meta-item muted">Member sejak <?= e(tanggal_id($hero_member['tgl_join'])) ?></span>
+                </div>
+                <div class="piagam-hero__bar-track">
+                  <div class="piagam-hero__bar-fill" style="width: 100%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <?php if (!empty($runner_members)): ?>
+            <!-- Runner-up List (Peringkat 2 s/d 5) -->
+            <ul class="piagam-list">
+              <?php foreach ($runner_members as $idx => $rm):
+                $rank = $idx + 2;
+                $pct = $max_belanja_member > 0 ? round(($rm['total_belanja'] / $max_belanja_member) * 100, 1) : 0;
+              ?>
+                <li class="piagam-item piagam-item--<?= $rank === 2 ? 'silver' : ($rank === 3 ? 'bronze' : 'neutral') ?>">
+                  <div class="piagam-item__medal">
+                    <?php if ($rank === 2): ?>
+                      <svg class="piagam-svg piagam-svg--silver" viewBox="0 0 44 48" fill="none" aria-hidden="true">
+                        <path d="M15 28L9 44L18 40L21 30" fill="#64748B"/>
+                        <path d="M29 28L35 44L26 40L23 30" fill="#475569"/>
+                        <path d="M10 20C9 14 12 9 17 6M27 6C32 9 35 14 34 20M9 24C11 30 15 33 22 34M35 24C33 30 29 33 22 34" stroke="#64748B" stroke-width="1.6" stroke-linecap="round"/>
+                        <circle cx="22" cy="20" r="14" fill="url(#silverGrad)" stroke="#475569" stroke-width="1.5"/>
+                        <circle cx="22" cy="20" r="11.8" stroke="#F8FAFC" stroke-width="1" stroke-dasharray="2 1.5"/>
+                        <path d="M22 9.5L23 12L25.5 12.3L23.5 14L24 16.5L22 15.2L20 16.5L20.5 14L18.5 12.3L21 12L22 9.5Z" fill="#F8FAFC" stroke="#475569" stroke-width="0.5"/>
+                        <text x="22" y="27" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="900" font-size="12" fill="#1E293B">2</text>
+                        <defs>
+                          <linearGradient id="silverGrad" x1="10" y1="8" x2="34" y2="32" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#F1F5F9"/>
+                            <stop offset="0.5" stop-color="#CBD5E1"/>
+                            <stop offset="1" stop-color="#94A3B8"/>
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    <?php elseif ($rank === 3): ?>
+                      <svg class="piagam-svg piagam-svg--bronze" viewBox="0 0 44 48" fill="none" aria-hidden="true">
+                        <path d="M15 28L9 44L18 40L21 30" fill="#B45309"/>
+                        <path d="M29 28L35 44L26 40L23 30" fill="#7C2D12"/>
+                        <path d="M10 20C9 14 12 9 17 6M27 6C32 9 35 14 34 20M9 24C11 30 15 33 22 34M35 24C33 30 29 33 22 34" stroke="#B45309" stroke-width="1.6" stroke-linecap="round"/>
+                        <circle cx="22" cy="20" r="14" fill="url(#bronzeGrad)" stroke="#7C2D12" stroke-width="1.5"/>
+                        <circle cx="22" cy="20" r="11.8" stroke="#FFEDD5" stroke-width="1" stroke-dasharray="2 1.5"/>
+                        <path d="M22 9.5L23 12L25.5 12.3L23.5 14L24 16.5L22 15.2L20 16.5L20.5 14L18.5 12.3L21 12L22 9.5Z" fill="#FFF7ED" stroke="#7C2D12" stroke-width="0.5"/>
+                        <text x="22" y="27" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="900" font-size="12" fill="#451A03">3</text>
+                        <defs>
+                          <linearGradient id="bronzeGrad" x1="10" y1="8" x2="34" y2="32" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#FED7AA"/>
+                            <stop offset="0.5" stop-color="#FDBA74"/>
+                            <stop offset="1" stop-color="#C2410C"/>
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    <?php else: ?>
+                      <div class="piagam-badge-num">#<?= $rank ?></div>
+                    <?php endif; ?>
+                  </div>
+                  <div class="piagam-item__body">
+                    <div class="piagam-item__top">
+                      <div class="piagam-item__name-wrap">
+                        <a class="piagam-item__name" href="<?= e(base_url('pages/membership/detail.php?id=' . (int) $rm['member_id'])) ?>"><?= e($rm['name']) ?></a>
+                        <?php if ($rank === 2): ?>
+                          <span class="badge-piagam badge-piagam--silver">Piagam Perak &middot; Platinum</span>
+                        <?php elseif ($rank === 3): ?>
+                          <span class="badge-piagam badge-piagam--bronze">Piagam Perunggu &middot; Gold</span>
+                        <?php else: ?>
+                          <span class="badge-piagam badge-piagam--neutral">Silver Tier</span>
+                        <?php endif; ?>
+                      </div>
+                      <div class="piagam-item__spend">
+                        <strong><?= e(rupiah($rm['total_belanja'])) ?></strong>
+                      </div>
+                    </div>
+                    <div class="piagam-item__sub">
+                      <span><?= (int) $rm['total_transaksi'] ?> pesanan &middot; <?= number_format((int) $rm['total_poin'], 0, ',', '.') ?> poin</span>
+                      <small class="muted">Member sejak <?= e(tanggal_id($rm['tgl_join'])) ?></small>
+                    </div>
+                  </div>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          <?php endif; ?>
+        <?php endif; ?>
+      </article>
+    <?php endif; ?>
 
     <article class="card" id="tiketButuhTindakan">
       <div class="card__head">

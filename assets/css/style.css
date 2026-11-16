@@ -1155,6 +1155,333 @@ img { max-width: 100%; display: block; }
 }
 
 /* =====================================================================
+   Card Piagam Tier Loyalitas (Khusus Admin)
+   ===================================================================== */
+
+.piagam-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.piagam-card__head {
+  padding-bottom: 12px;
+}
+
+.piagam-card__head .card__head-actions {
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.piagam-head-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.piagam-badge-pill {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #B45309;
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.piagam-head-date {
+  font-size: 11.5px;
+  color: var(--gray-500);
+}
+
+.piagam-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0 0 3px;
+}
+
+.piagam-subtitle {
+  font-size: 12.5px;
+  color: var(--gray-600);
+  margin: 0;
+}
+
+/* Hero Pedestal Juara 1 */
+.piagam-hero {
+  position: relative;
+  margin: 16px 18px 14px;
+  padding: 18px 18px 16px;
+  background: linear-gradient(135deg, #FFFDF8 0%, #FEF9EB 100%);
+  border: 1.5px solid #F6D884;
+  border-radius: var(--radius-card);
+  box-shadow: 0 3px 12px rgba(217, 119, 6, 0.08);
+}
+
+.piagam-hero__ribbon-tag {
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+  color: #FFFFFF;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2.5px 11px;
+  border-radius: 999px;
+  box-shadow: 0 2px 4px rgba(180, 83, 9, 0.25);
+}
+
+.piagam-hero__inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.piagam-hero__medal {
+  flex: none;
+  width: 50px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.piagam-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.piagam-hero__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.piagam-hero__header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.piagam-hero__member-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.piagam-hero__member-name a {
+  font-size: 15px;
+  font-weight: 700;
+  color: #78350F;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.piagam-hero__member-name a:hover {
+  text-decoration: underline;
+  color: #B45309;
+}
+
+.piagam-crown-pill {
+  font-size: 11px;
+  font-weight: 700;
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+  padding: 1px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.piagam-hero__spend-val {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.piagam-hero__spend-val small {
+  display: block;
+  font-size: 10px;
+  color: #92400E;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.piagam-hero__spend-val strong {
+  font-size: 16px;
+  font-weight: 800;
+  color: #78350F;
+  font-variant-numeric: tabular-nums;
+}
+
+.piagam-hero__meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #92400E;
+  margin-bottom: 9px;
+  flex-wrap: wrap;
+}
+
+.piagam-meta-divider {
+  color: #FCD34D;
+}
+
+.piagam-meta-item.muted {
+  color: #B45309;
+  font-size: 11.5px;
+}
+
+.piagam-hero__bar-track {
+  width: 100%;
+  height: 5px;
+  background: #FDE68A;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.piagam-hero__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #F59E0B 0%, #D97706 100%);
+  border-radius: 999px;
+}
+
+/* List Runner-up */
+.piagam-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.piagam-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--gray-100);
+  transition: background var(--transition, 0.15s ease);
+}
+
+.piagam-item:hover {
+  background: #FAFAFA;
+}
+
+.piagam-item__medal {
+  flex: none;
+  width: 36px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.piagam-badge-num {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-control);
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border: 1px solid var(--gray-200);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.piagam-item__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.piagam-item__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.piagam-item__name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.piagam-item__name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--gray-900);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.piagam-item__name:hover {
+  text-decoration: underline;
+  color: var(--teal-dark);
+}
+
+.badge-piagam {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.badge-piagam--silver {
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+}
+
+.badge-piagam--bronze {
+  background: #FFF7ED;
+  color: #9A3412;
+  border: 1px solid #FDBA74;
+}
+
+.badge-piagam--neutral {
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border: 1px solid var(--gray-200);
+}
+
+.piagam-item__spend strong {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--teal-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+.piagam-item__sub {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+  color: var(--gray-500);
+}
+
+/* =====================================================================
    Toggle switch
    ===================================================================== */
 
